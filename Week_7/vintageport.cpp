@@ -36,7 +36,7 @@ void VintagePort::Show() const{
 }
 
 ostream& operator << (ostream& os, const VintagePort& vp){
-    os << *(Port*)(&vp) << " ";
-    os << vp.nickname << " " << vp.year;
+    os << *(Port*)(&vp) << ", ";//输出Port部分
+    os << vp.nickname << ", " << vp.year;
     return os;
 }
