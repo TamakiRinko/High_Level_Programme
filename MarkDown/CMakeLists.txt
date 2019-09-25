@@ -3,4 +3,4 @@ project(MarkDown)
 
 set(CMAKE_CXX_STANDARD 11)
 
-add_executable(MarkDown main.cpp Parser.cpp Parser.h)
+add_executable(MarkDown main.cpp Parser.cpp Parser.h Values.cpp)

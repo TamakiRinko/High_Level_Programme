@@ -1,26 +1,7 @@
 //
 // Created by TamakiRinko on 2019/9/23.
 //
-
 #include "Parser.h"
-
-//regex SERegex("(\\*\\*\\*)(.+?)(\\*\\*\\*)");       //加粗斜体
-//regex SRegex("(\\*\\*)(.+?)(\\*\\*)");              //加粗
-//regex ERegex("(\\*)(.+?)(\\*)");                    //斜体
-regex SERegex(R"((\*\*\*)(.+?)(\*\*\*))");       //加粗斜体
-regex SRegex(R"((\*\*)(.+?)(\*\*))");              //加粗
-regex ERegex(R"((\*)(.+?)(\*))");                    //斜体
-regex H1Regex(R"(# )");                               //h1
-regex H2Regex(R"(## )");                              //h2
-regex H3Regex(R"(### )");                             //h3
-regex H4Regex(R"(#### )");                            //h4
-regex H5Regex(R"(##### )");                           //h5
-regex H6Regex(R"(###### )");                          //h6
-regex LIRegex(R"(^[*+-] )");                           //列表
-//regex LIORegex("^(\\d+)\\.");                         //有序列表
-regex LIORegex(R"(^(\d+)\.)");
-//regex LKSRegex("\\[(.*)\\]\\((.+)\\)");             //链接
-regex LKSRegex(R"(\[(.*)\]\((.+)\))");
 
 Parser::Parser(const char *inFileName, const char* outFileName) {
     print(inFileName);
@@ -35,8 +16,8 @@ Parser::Parser(const char *inFileName, const char* outFileName) {
         print("Fout File open error!\n");
         return;
     }
-    htmlStr = htmlStart;
-    curStatus = NORMAL;
+    htmlStr = Values::htmlStart;
+    curStatus = Values::NORMAL;
     listLevel = 0;
     blankNum = 0;
 }
@@ -46,145 +27,43 @@ void Parser::Handle() {
     while(getline(fin, curStr)){
         blankHandle(curStr);
         int curListLevel = listCount(curStr);
-        if(regex_search(curStr, LIRegex)){                                      //当前一行为LISTS
-            if(curStatus == NORMAL){                                            //新的LISTS
-                curStatus = LISTS;
-                listLevel = 1;
-                curStr = regex_replace(curStr, LIRegex, "<ul>\n<li>");
-                REHandle(curStr);
-                myStack.push("</ul>\n");
-                myStack.push("</li>\n");
-            }else if(curStatus == LISTS || curStatus == ORDEREDLISTS){          //嵌套LISTS
-                curStatus = LISTS;
-                if(curListLevel > listLevel){                                   //子列表
-                    listLevel = curListLevel;
-                    curStr = regex_replace(curStr, LIRegex, "<ul>\n<li>");
-                    REHandle(curStr);
-                    myStack.push("</ul>\n");
-                    myStack.push("</li>\n");
-                } else if(curListLevel == listLevel){                           //同级列表，前一个一定为LISTS
-                    string prefix = "";
-                    while(myStack.top() != "</ul>\n"){
-                        prefix += myStack.top();
-                        myStack.pop();
-                    }
-                    curStr = regex_replace(curStr, LIRegex, "<li>");
-                    myStack.push("</li>\n");
-                    curStr = prefix + curStr;
-                    REHandle(curStr);
-                }else{                                                          //父列表
-                    int popNum = listLevel - curListLevel;
-                    string prefix = "";
-                    while(popNum >= 0){
-                        if(myStack.top() == "</ul>\n" || myStack.top() == "</ol>\n"){   //之前可能为LISTS或ORDEREDLISTS
-                            popNum--;
-                        }
-                        if(popNum != -1){                                       //保留同级的/ul
-                            prefix += myStack.top();
-                            myStack.pop();
-                        }
-                    }
-                    curStr = regex_replace(curStr, LIRegex, "<li>");
-                    myStack.push("</li>\n");
-                    listLevel = curListLevel;
-                    curStr = prefix + curStr;
-                    REHandle(curStr);
-                }
-            }
-        }else if(regex_search(curStr, LIORegex)){                               //当前一行为ORDEREDLISTS
-            if(curStatus == NORMAL){                                            //新的ORDEREDLISTS
-                curStatus = ORDEREDLISTS;
-                listLevel = 1;
-                curStr = regex_replace(curStr, LIORegex, "<ol start=\'$1\'>\n<li>");
-                REHandle(curStr);
-                myStack.push("</ol>\n");
-                myStack.push("</li>\n");
-            }else if(curStatus == LISTS || curStatus == ORDEREDLISTS){          //嵌套ORDEREDLISTS
-                curStatus = ORDEREDLISTS;
-                if(curListLevel > listLevel){                                   //子列表
-                    listLevel = curListLevel;
-                    curStr = regex_replace(curStr, LIORegex, "<ol start=\'$1\'>\n<li>");
-                    REHandle(curStr);
-                    myStack.push("</ol>\n");
-                    myStack.push("</li>\n");
-                } else if(curListLevel == listLevel){                           //同级列表
-                    string prefix = "";
-                    while(myStack.top() != "</ol>\n"){
-                        prefix += myStack.top();
-                        myStack.pop();
-                    }
-                    curStr = regex_replace(curStr, LIORegex, "<li>");
-                    myStack.push("</li>\n");
-                    curStr = prefix + curStr;
-                    REHandle(curStr);
-                }else{                                                          //父列表
-                    int popNum = listLevel - curListLevel;
-                    string prefix = "";
-                    while(popNum >= 0){
-                        if(myStack.top() == "</ol>\n" || myStack.top() == "</ul>\n"){   //前面可能是LISTS
-                            popNum--;
-                        }
-                        if(popNum != -1){                                       //保留同级的/ol
-                            prefix += myStack.top();
-                            myStack.pop();
-                        }
-                    }
-                    curStr = regex_replace(curStr, LIORegex, "<li>");
-                    myStack.push("</li>\n");
-                    listLevel = curListLevel;
-                    curStr = prefix + curStr;
-                    REHandle(curStr);
-                }
-            }
-        }else if(curStatus == LISTS || curStatus == ORDEREDLISTS){
-            if(curStr != ""){                                   //来了新的一类，不再是列表
-                while(!myStack.empty()){                        //栈中弹出剩余的结束标签
+        if(regex_search(curStr, Values::LIRegex)){                                      //当前一行为LISTS
+            listLogic(curStr, curListLevel, Values::LISTS, Values::LIRegex,
+                    "<ul>\n<li>", "</ol>\n",
+                    "</ul>\n", "<li>", "</li>\n");
+        }else if(regex_search(curStr, Values::LIORegex)){                               //当前一行为ORDEREDLISTS
+            listLogic(curStr, curListLevel, Values::ORDEREDLISTS, Values::LIORegex,
+                    "<ol start=\'$1\'>\n<li>", "</ul>\n",
+                    "</ol>\n", "<li>", "</li>\n");
+        }else if(curStatus == Values::LISTS || curStatus == Values::ORDEREDLISTS){              //只有三个空行或是一个非空行才会结束列表
+            if(curStr != ""){                                                   //来了新的一类，不再是列表
+                while(!myStack.empty()){                                        //栈中弹出剩余的结束标签
                     htmlStr += myStack.top();
                     myStack.pop();
                 }
                 REHandle(curStr);
-                curStatus = NORMAL;
+                curStatus = Values::NORMAL;
                 listLevel = 0;
             }
-//            if(curStr == "&nbsp;"){         //变为空行了
-//                string prefix = "";
-//                while(!myStack.empty()){
-//                    prefix += myStack.top();
-//                    myStack.pop();
-//                }
-//                curStr = prefix + curStr;
-//                curStatus = NORMAL;
-//                listLevel = 0;
-//                REHandle(curStr);
-//            }
-        }
-//        else if(curStatus == LISTS || curStatus == ORDEREDLISTS){
-//            while(!myStack.empty()){
-//                curStr += myStack.top();
-//                myStack.pop();
-//            }
-//            REHandle(curStr);   //处理时仍是LISTS状态
-//            curStatus = NORMAL;
-//            listLevel = 0;
-//        }
-        else if(curStr != ""){                              //新的非空一行
-            while(!myStack.empty()){                        //栈中弹出剩余的结束标签
-                htmlStr += myStack.top();
-                myStack.pop();
-            }
+        }else if(curStr != ""){                                                 //新的非空一行
             REHandle(curStr);
         }
         htmlStr += curStr;
     }
-    while(!myStack.empty()){
+    while(!myStack.empty()){                                                    //列表处于最末尾时弹出结束符
         htmlStr += myStack.top();
         myStack.pop();
     }
-    htmlStr += htmlEnd;
+    htmlStr += Values::htmlEnd;
     fout << htmlStr;
     fout.close();
 }
 
+/**
+ * 计算当前行聚首空格数
+ * @param str
+ * @return
+ */
 int Parser::listCount(string& str) {
     int num = 0;
     int i = 0;
@@ -196,42 +75,53 @@ int Parser::listCount(string& str) {
     return (num / 2) + 1;
 }
 
-void Parser::REHandle(string &curStr) {
+/**
+ * 正则表达式处理函数
+ * @param curStr
+ */
+void Parser::REHandle(string &curStr, regex* myRegex, string label) {
+    if(myRegex != nullptr){
+        curStr = regex_replace(curStr, *myRegex, label);
+    }
     bool isHead = false;
-    if(regex_search(curStr, H6Regex)){
-        curStr = regex_replace(curStr, H6Regex, "<h6>");
+    if(regex_search(curStr, Values::H6Regex)){
+        curStr = regex_replace(curStr, Values::H6Regex, "<h6>");
         curStr = curStr + "</h6>\n";
         isHead = true;
-    }else if(regex_search(curStr, H5Regex)){
-        curStr = regex_replace(curStr, H5Regex, "<h5>");
+    }else if(regex_search(curStr, Values::H5Regex)){
+        curStr = regex_replace(curStr, Values::H5Regex, "<h5>");
         curStr = curStr + "</h5>\n";
         isHead = true;
-    }else if(regex_search(curStr, H4Regex)){
-        curStr = regex_replace(curStr, H4Regex, "<h4>");
+    }else if(regex_search(curStr, Values::H4Regex)){
+        curStr = regex_replace(curStr, Values::H4Regex, "<h4>");
         curStr = curStr + "</h4>\n";
         isHead = true;
-    }else if(regex_search(curStr, H3Regex)){
-        curStr = regex_replace(curStr, H3Regex, "<h3>");
+    }else if(regex_search(curStr, Values::H3Regex)){
+        curStr = regex_replace(curStr, Values::H3Regex, "<h3>");
         curStr = curStr + "</h3>\n";
         isHead = true;
-    }else if(regex_search(curStr, H2Regex)){
-        curStr = regex_replace(curStr, H2Regex, "<h2>");
+    }else if(regex_search(curStr, Values::H2Regex)){
+        curStr = regex_replace(curStr, Values::H2Regex, "<h2>");
         curStr = curStr + "</h2>\n";
         isHead = true;
-    }else if(regex_search(curStr, H1Regex)){
-        curStr = regex_replace(curStr, H1Regex, "<h1>");
+    }else if(regex_search(curStr, Values::H1Regex)){
+        curStr = regex_replace(curStr, Values::H1Regex, "<h1>");
         curStr = curStr + "</h1>\n";
         isHead = true;
     }
-    curStr = regex_replace(curStr, SERegex, "<strong><em>$2</em></strong>");
-    curStr = regex_replace(curStr, SRegex, "<strong>$2</strong>");
-    curStr = regex_replace(curStr, ERegex, "<em>$2</em>");
-    curStr = regex_replace(curStr, LKSRegex, "<a href=\'$2\'>$1</a>");
+    curStr = regex_replace(curStr, Values::SERegex, "<strong><em>$2</em></strong>");
+    curStr = regex_replace(curStr, Values::SRegex, "<strong>$2</strong>");
+    curStr = regex_replace(curStr, Values::ERegex, "<em>$2</em>");
+    curStr = regex_replace(curStr, Values::LKSRegex, "<a href=\'$2\'>$1</a>");
     if(!isHead && listLevel == 0 && curStr != ""){      //列表中不添加<p>
         curStr = "<p>" + curStr + "</p>\n";
     }
 }
 
+/**
+ * 空白行处理，3个空行算一个&nbsp;
+ * @param curStr
+ */
 void Parser::blankHandle(string &curStr) {
     if(curStr == ""){
         blankNum++;
@@ -242,7 +132,57 @@ void Parser::blankHandle(string &curStr) {
     if(blankNum == 3){          //空三行，增加一个空行，变为一般类型
         curStr = "&nbsp;";
         blankNum = 0;
-        curStatus = NORMAL;
-        listLevel = 0;
+    }
+}
+
+/**
+ * 处理LISTS和ORDEREDLISTS的逻辑
+ * @param curStr                //当前行字符串
+ * @param curListLevel          //当前列表层数
+ * @param status                //当前Status
+ * @param myRegex               //使用的正则表达式
+ * @param startLabel            //新的一级列表开始字符串
+ * @param otherLabel            //对方的结束字符串(LISTS时为</ol>)
+ * @param endLabel              //本方的结束字符串(LISTS时为</ul>)
+ * @param comStartLabel         //<li>
+ * @param comEndLabel           //</li>
+ */
+void Parser::listLogic(string &curStr, int curListLevel, Values::Status status, regex myRegex,
+        string startLabel, string otherLabel, string endLabel, string comStartLabel, string comEndLabel) {
+    if(curStatus == Values::NORMAL){                                            //新的LISTS
+        curStatus = status;
+        listLevel = 1;
+        myStack.push(endLabel);                                      //将结束符压入栈中
+        myStack.push(comEndLabel);
+        REHandle(curStr, &myRegex, startLabel);                                            //其余部分处理
+    }else if(curStatus == Values::LISTS || curStatus == Values::ORDEREDLISTS){          //嵌套LISTS
+        curStatus = status;
+        if(curListLevel > listLevel){                                   //当前为子列表，应开始新的一级列表
+            myStack.push(endLabel);
+            myStack.push(comEndLabel);
+            listLevel = curListLevel;
+            REHandle(curStr, &myRegex, startLabel);
+        } else if(curListLevel == listLevel){                           //同级列表，类型必然相同
+            while(myStack.top() != endLabel){                           //直至只剩列表结束符</ul>或</ol>
+                htmlStr += myStack.top();
+                myStack.pop();
+            }
+            myStack.push(comEndLabel);
+            REHandle(curStr, &myRegex, comStartLabel);
+        }else{                                                          //父列表
+            int popNum = listLevel - curListLevel;                      //弹出的层数
+            while(popNum >= 0){
+                if(myStack.top() == endLabel || myStack.top() == otherLabel){   //之前可能为LISTS或ORDEREDLISTS
+                    popNum--;
+                }
+                if(popNum != -1){                                       //保留同级的/ul
+                    htmlStr += myStack.top();
+                    myStack.pop();
+                }
+            }
+            myStack.push(comEndLabel);
+            listLevel = curListLevel;
+            REHandle(curStr, &myRegex, comStartLabel);
+        }
     }
 }

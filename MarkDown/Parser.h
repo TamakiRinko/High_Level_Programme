@@ -6,64 +6,65 @@
 #define MARKDOWN_PARSER_H
 
 #include <iostream>
-#include <string>
-#include <fstream>
-#include <regex>
 #include <stack>
+#include <fstream>
+#include <string>
+#include <regex>
 using namespace std;
-#define print(x) cout << x << endl;
-#define input(x) cin >> x
 
-//开头部分
-const string htmlStart = "<!doctype html>\n"
-                     "<html>\n"
-                     "<head>\n"
-                     "    <meta charset='UTF-8'><meta name='viewport' content='width=device-width initial-scale=1'>\n"
-                     "    <title>样例</title></head>\n"
-                     "<body>\n";
-//结尾部分
-const string htmlEnd = "</body>\n"
-                   "</html>";
-//标签前部
-const string beforeHtmlLabel[]{
-    "<p>",
-    "<h1>", "<h2>", "<h3>", "<h4>", "<h5>", "<h6>",
-    "<strong>", "<em>", "<strong><em>",
-    "<ul>", "<li>", "<ol>", "<ol start="
-};
-//标签后部
-const string afterHtmlLabel[]{
-    "</p>", "</h1>", "</h2>", "</h3>", "</h4>", "</h5>", "</h6>",
-    "</strong>", "</em>", "</em></strong>", "</ul>", "</li>", "</ol>"
-};
-//与html不同的内容
-const string diffContents[]{
-    "&nbsp;"
-};
+#define print(x) cout << x << endl
 
 /**
  * 当前所在状态
+ * @NORMAL          正常
+ * @LISTS           无序列表
+ * @ORDEREDLISTS    有序列表
  */
-enum Status{
-    NORMAL, LISTS, ORDEREDLISTS, HEADERS, STRONG, EMPHASIS, LINKS
+
+
+class Values{
+public:
+    enum Status{
+        NORMAL, LISTS, ORDEREDLISTS
+    };
+    //开头部分
+    static string htmlStart;
+    //结尾部分
+    static string htmlEnd;
+    //正则表达式
+    static regex SERegex;
+    static regex SRegex;
+    static regex ERegex;
+    static regex H1Regex;
+    static regex H2Regex;
+    static regex H3Regex;
+    static regex H4Regex;
+    static regex H5Regex;
+    static regex H6Regex;
+    static regex LIRegex;
+    static regex LIORegex;
+    static regex LKSRegex;
+    static regex
 };
+
 
 class Parser{
 public:
     Parser(const char* inFileName, const char* outFileName);
     void Handle();
 private:
-    ifstream fin;
-    ofstream fout;
-    string htmlStr;
-    Status curStatus;   //当前status
-    stack<string> myStack;
-    int listLevel;      //当前列表层数
-    int listCount(string& str);
-    void REHandle(string& curStr);
-    void blankHandle(string& curStr);
-    int blankNum;       //空行数目，大于2则增加&nbsp;
+    ifstream fin;               //读入文件描述符
+    ofstream fout;              //读出文件描述符
+    string htmlStr;             //最终html字符串
+    Values::Status curStatus;           //当前status
+    stack<string> myStack;      //存储结束符的栈
+    int listLevel;              //当前列表层数
+    int blankNum;               //空行数目，达到3则增加&nbsp;
+    int listCount(string& str); //计算当前行的层数
+    void REHandle(string &curStr, regex *myRegex = nullptr, string label = "");     //正则表达式处理
+    void blankHandle(string& curStr);                                                   //空格处理
+    void listLogic(string &curStr, int curListLevel, Values::Status status, regex myRegex,
+                   string startLabel, string otherLabel, string endLabel, string comStartLabel, string comEndLabel);
 };
 
-
-#endif //MARKDOWN_PARSER_H
+#endif
