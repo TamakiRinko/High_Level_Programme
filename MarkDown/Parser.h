@@ -44,8 +44,10 @@ public:
     static regex LIRegex;
     static regex LIORegex;
     static regex LKSRegex;
-    static regex
+    static regex BLQRegex;
+    static regex IMGRegex;
 };
+
 
 
 class Parser{
@@ -56,15 +58,18 @@ private:
     ifstream fin;               //读入文件描述符
     ofstream fout;              //读出文件描述符
     string htmlStr;             //最终html字符串
-    Values::Status curStatus;           //当前status
+    Values::Status curStatus;   //当前status
     stack<string> myStack;      //存储结束符的栈
     int listLevel;              //当前列表层数
     int blankNum;               //空行数目，达到3则增加&nbsp;
+    bool blqFlag;               //判断之前是否为blockquote
+    bool blqMatch;              //blq的<p>与</p>是否配对
     int listCount(string& str); //计算当前行的层数
     void REHandle(string &curStr, regex *myRegex = nullptr, string label = "");     //正则表达式处理
     void blankHandle(string& curStr);                                                   //空格处理
     void listLogic(string &curStr, int curListLevel, Values::Status status, regex myRegex,
                    string startLabel, string otherLabel, string endLabel, string comStartLabel, string comEndLabel);
+    void blqLogic(string& curStr);
 };
 
 #endif

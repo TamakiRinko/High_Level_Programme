@@ -20,6 +20,8 @@ Parser::Parser(const char *inFileName, const char* outFileName) {
     curStatus = Values::NORMAL;
     listLevel = 0;
     blankNum = 0;
+    blqFlag = false;
+    blqMatch = false;
 }
 
 void Parser::Handle() {
@@ -41,9 +43,9 @@ void Parser::Handle() {
                     htmlStr += myStack.top();
                     myStack.pop();
                 }
-                REHandle(curStr);
-                curStatus = Values::NORMAL;
+                curStatus = Values::NORMAL;                                     //此时已经不再是列表了
                 listLevel = 0;
+                REHandle(curStr);
             }
         }else if(curStr != ""){                                                 //新的非空一行
             REHandle(curStr);
@@ -53,6 +55,9 @@ void Parser::Handle() {
     while(!myStack.empty()){                                                    //列表处于最末尾时弹出结束符
         htmlStr += myStack.top();
         myStack.pop();
+    }
+    if(blqFlag){                                                                //blockquote处于末尾
+        htmlStr += "</p></blockquote>\n";
     }
     htmlStr += Values::htmlEnd;
     fout << htmlStr;
@@ -80,8 +85,18 @@ int Parser::listCount(string& str) {
  * @param curStr
  */
 void Parser::REHandle(string &curStr, regex* myRegex, string label) {
+    if(curStr == "")    return;
+    string temp1;
+    string temp2;
+    if(curStr.length() >= 2){
+        temp1 = curStr.substr(2);                //后部分
+        temp2 = curStr.substr(0, 2);         //前部分
+    }
+//    print("this " + curStr);
     if(myRegex != nullptr){
-        curStr = regex_replace(curStr, *myRegex, label);
+        temp2 = regex_replace(temp2, *myRegex, label);
+        curStr = temp1;
+//        print(curStr);
     }
     bool isHead = false;
     if(regex_search(curStr, Values::H6Regex)){
@@ -109,13 +124,29 @@ void Parser::REHandle(string &curStr, regex* myRegex, string label) {
         curStr = curStr + "</h1>\n";
         isHead = true;
     }
+
     curStr = regex_replace(curStr, Values::SERegex, "<strong><em>$2</em></strong>");
     curStr = regex_replace(curStr, Values::SRegex, "<strong>$2</strong>");
     curStr = regex_replace(curStr, Values::ERegex, "<em>$2</em>");
+    curStr = regex_replace(curStr, Values::IMGRegex, "<img src=\"$2\" alt=\"$1\">");
     curStr = regex_replace(curStr, Values::LKSRegex, "<a href=\'$2\'>$1</a>");
-    if(!isHead && listLevel == 0 && curStr != ""){      //列表中不添加<p>
-        curStr = "<p>" + curStr + "</p>\n";
+
+    if(regex_search(curStr, Values::BLQRegex)){                     //blockquote
+        blqLogic(curStr);
+    }else if(curStr.length() == 1 && curStr[0] == '>' && blqFlag){  //>:代表换行，不考虑多个>的情况
+        curStr = "</p>\n";
+        blqMatch = true;
+    }else if(blqFlag){                                              //blockquote后面紧接着一个普通行
+        htmlStr += "</p></blockquote>\n";
+        blqFlag = false;
     }
+    if(!isHead && listLevel == 0 && curStr != "" && !blqFlag){      //列表中不添加<p>
+        curStr = "<p>" + curStr + "</p>\n";
+    }else if(listLevel != 0){
+        curStr = temp2 + curStr;
+    }
+//    print("last " + curStr);
+//    cout << endl;
 }
 
 /**
@@ -124,6 +155,10 @@ void Parser::REHandle(string &curStr, regex* myRegex, string label) {
  */
 void Parser::blankHandle(string &curStr) {
     if(curStr == ""){
+        if(blqFlag){                                //blockquote后面紧接着为空行
+            blqFlag = false;
+            htmlStr += "</p></blockquote>\n";
+        }
         blankNum++;
     }
     if(curStr != ""){
@@ -183,6 +218,22 @@ void Parser::listLogic(string &curStr, int curListLevel, Values::Status status, 
             myStack.push(comEndLabel);
             listLevel = curListLevel;
             REHandle(curStr, &myRegex, comStartLabel);
+        }
+    }
+}
+
+void Parser::blqLogic(string &curStr) {
+    if(!blqFlag){
+        curStr = regex_replace(curStr, Values::BLQRegex, "<blockquote>\n<p>");
+        blqFlag = true;
+        blqMatch = false;
+    }else{
+        if(blqMatch){
+            curStr.replace(0, 2, "<p>");
+            blqMatch = false;
+        }else{
+            curStr.replace(0, 2, "");
+            curStr = " " + curStr;
         }
     }
 }
