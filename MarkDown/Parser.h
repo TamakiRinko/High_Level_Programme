@@ -24,6 +24,8 @@ using namespace std;
 
 class Values{
 public:
+    static bool isInlineCSS;
+    static bool isOutCSS;
     enum Status{
         NORMAL, LISTS, ORDEREDLISTS
     };
@@ -31,6 +33,8 @@ public:
     static string htmlStart;
     //结尾部分
     static string htmlEnd;
+    //外部式CSS开头
+    static string CSSStart;
     //正则表达式
     static regex SERegex;
     static regex SRegex;
@@ -46,6 +50,9 @@ public:
     static regex LKSRegex;
     static regex BLQRegex;
     static regex IMGRegex;
+    static regex HORLINRegex;
+    static regex CODERegex;
+    static regex MTNRegex;
 };
 
 
@@ -64,8 +71,11 @@ private:
     int blankNum;               //空行数目，达到3则增加&nbsp;
     bool blqFlag;               //判断之前是否为blockquote
     bool blqMatch;              //blq的<p>与</p>是否配对
+    void handleLine(string& curStr);    //处理每一行的整体逻辑
     int listCount(string& str); //计算当前行的层数
     void REHandle(string &curStr, regex *myRegex = nullptr, string label = "");     //正则表达式处理
+    void handleHtml(string &curStr, regex *myRegex, string label);      //输出HTML样式
+    void handleCSS(string &curStr, regex *myRegex, string label);       //输出CSS样式
     void blankHandle(string& curStr);                                                   //空格处理
     void listLogic(string &curStr, int curListLevel, Values::Status status, regex myRegex,
                    string startLabel, string otherLabel, string endLabel, string comStartLabel, string comEndLabel);

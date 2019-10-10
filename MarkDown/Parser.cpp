@@ -16,7 +16,11 @@ Parser::Parser(const char *inFileName, const char* outFileName) {
         print("Fout File open error!\n");
         return;
     }
-    htmlStr = Values::htmlStart;
+    if(Values::isOutCSS){
+        htmlStr = Values::CSSStart;
+    }else{
+        htmlStr = Values::htmlStart;
+    }
     curStatus = Values::NORMAL;
     listLevel = 0;
     blankNum = 0;
@@ -27,30 +31,7 @@ Parser::Parser(const char *inFileName, const char* outFileName) {
 void Parser::Handle() {
     string curStr = "";
     while(getline(fin, curStr)){
-        blankHandle(curStr);
-        int curListLevel = listCount(curStr);
-        if(regex_search(curStr, Values::LIRegex)){                                      //当前一行为LISTS
-            listLogic(curStr, curListLevel, Values::LISTS, Values::LIRegex,
-                    "<ul>\n<li>", "</ol>\n",
-                    "</ul>\n", "<li>", "</li>\n");
-        }else if(regex_search(curStr, Values::LIORegex)){                               //当前一行为ORDEREDLISTS
-            listLogic(curStr, curListLevel, Values::ORDEREDLISTS, Values::LIORegex,
-                    "<ol start=\'$1\'>\n<li>", "</ul>\n",
-                    "</ol>\n", "<li>", "</li>\n");
-        }else if(curStatus == Values::LISTS || curStatus == Values::ORDEREDLISTS){              //只有三个空行或是一个非空行才会结束列表
-            if(curStr != ""){                                                   //来了新的一类，不再是列表
-                while(!myStack.empty()){                                        //栈中弹出剩余的结束标签
-                    htmlStr += myStack.top();
-                    myStack.pop();
-                }
-                curStatus = Values::NORMAL;                                     //此时已经不再是列表了
-                listLevel = 0;
-                REHandle(curStr);
-            }
-        }else if(curStr != ""){                                                 //新的非空一行
-            REHandle(curStr);
-        }
-        htmlStr += curStr;
+        handleLine(curStr);
     }
     while(!myStack.empty()){                                                    //列表处于最末尾时弹出结束符
         htmlStr += myStack.top();
@@ -77,76 +58,7 @@ int Parser::listCount(string& str) {
         i++;
     }
     str = str.substr(i);
-    return (num / 2) + 1;
-}
-
-/**
- * 正则表达式处理函数
- * @param curStr
- */
-void Parser::REHandle(string &curStr, regex* myRegex, string label) {
-    if(curStr == "")    return;
-    string temp1;
-    string temp2;
-    if(curStr.length() >= 2){
-        temp1 = curStr.substr(2);                //后部分
-        temp2 = curStr.substr(0, 2);         //前部分
-    }
-//    print("this " + curStr);
-    if(myRegex != nullptr){
-        temp2 = regex_replace(temp2, *myRegex, label);
-        curStr = temp1;
-//        print(curStr);
-    }
-    bool isHead = false;
-    if(regex_search(curStr, Values::H6Regex)){
-        curStr = regex_replace(curStr, Values::H6Regex, "<h6>");
-        curStr = curStr + "</h6>\n";
-        isHead = true;
-    }else if(regex_search(curStr, Values::H5Regex)){
-        curStr = regex_replace(curStr, Values::H5Regex, "<h5>");
-        curStr = curStr + "</h5>\n";
-        isHead = true;
-    }else if(regex_search(curStr, Values::H4Regex)){
-        curStr = regex_replace(curStr, Values::H4Regex, "<h4>");
-        curStr = curStr + "</h4>\n";
-        isHead = true;
-    }else if(regex_search(curStr, Values::H3Regex)){
-        curStr = regex_replace(curStr, Values::H3Regex, "<h3>");
-        curStr = curStr + "</h3>\n";
-        isHead = true;
-    }else if(regex_search(curStr, Values::H2Regex)){
-        curStr = regex_replace(curStr, Values::H2Regex, "<h2>");
-        curStr = curStr + "</h2>\n";
-        isHead = true;
-    }else if(regex_search(curStr, Values::H1Regex)){
-        curStr = regex_replace(curStr, Values::H1Regex, "<h1>");
-        curStr = curStr + "</h1>\n";
-        isHead = true;
-    }
-
-    curStr = regex_replace(curStr, Values::SERegex, "<strong><em>$2</em></strong>");
-    curStr = regex_replace(curStr, Values::SRegex, "<strong>$2</strong>");
-    curStr = regex_replace(curStr, Values::ERegex, "<em>$2</em>");
-    curStr = regex_replace(curStr, Values::IMGRegex, "<img src=\"$2\" alt=\"$1\">");
-    curStr = regex_replace(curStr, Values::LKSRegex, "<a href=\'$2\'>$1</a>");
-
-    if(regex_search(curStr, Values::BLQRegex)){                     //blockquote
-        blqLogic(curStr);
-    }else if(curStr.length() == 1 && curStr[0] == '>' && blqFlag){  //>:代表换行，不考虑多个>的情况
-        curStr = "</p>\n";
-        blqMatch = true;
-    }else if(blqFlag){                                              //blockquote后面紧接着一个普通行
-        htmlStr += "</p></blockquote>\n";
-        blqFlag = false;
-    }
-    if(!isHead && listLevel == 0 && curStr != "" && !blqFlag){      //列表中不添加<p>
-        curStr = "<p>" + curStr + "</p>\n";
-    }else if(listLevel != 0){
-        curStr = temp2 + curStr;
-    }
-//    print("last " + curStr);
-//    cout << endl;
+    return (num / 4) + 1;
 }
 
 /**
@@ -191,33 +103,52 @@ void Parser::listLogic(string &curStr, int curListLevel, Values::Status status, 
         myStack.push(comEndLabel);
         REHandle(curStr, &myRegex, startLabel);                                            //其余部分处理
     }else if(curStatus == Values::LISTS || curStatus == Values::ORDEREDLISTS){          //嵌套LISTS
-        curStatus = status;
         if(curListLevel > listLevel){                                   //当前为子列表，应开始新的一级列表
             myStack.push(endLabel);
             myStack.push(comEndLabel);
             listLevel = curListLevel;
             REHandle(curStr, &myRegex, startLabel);
-        } else if(curListLevel == listLevel){                           //同级列表，类型必然相同
-            while(myStack.top() != endLabel){                           //直至只剩列表结束符</ul>或</ol>
-                htmlStr += myStack.top();
-                myStack.pop();
-            }
-            myStack.push(comEndLabel);
-            REHandle(curStr, &myRegex, comStartLabel);
-        }else{                                                          //父列表
-            int popNum = listLevel - curListLevel;                      //弹出的层数
-            while(popNum >= 0){
-                if(myStack.top() == endLabel || myStack.top() == otherLabel){   //之前可能为LISTS或ORDEREDLISTS
-                    popNum--;
-                }
-                if(popNum != -1){                                       //保留同级的/ul
+        } else if(curListLevel == listLevel){                           //同级列表
+            if(curStatus != status && curListLevel == 1){               //列表结束
+                while(!myStack.empty()){
                     htmlStr += myStack.top();
                     myStack.pop();
                 }
+                curStatus = Values::NORMAL;
+                handleLine(curStr);
+                curStr = "";
+            }else{
+                while(myStack.top() != endLabel){                           //直至只剩列表结束符</ul>或</ol>
+                    htmlStr += myStack.top();
+                    myStack.pop();
+                }
+                myStack.push(comEndLabel);
+                REHandle(curStr, &myRegex, comStartLabel);
             }
-            myStack.push(comEndLabel);
-            listLevel = curListLevel;
-            REHandle(curStr, &myRegex, comStartLabel);
+        }else{                                                          //父列表
+            if(curStatus != status && curListLevel == 1){               //列表结束
+                while(!myStack.empty()){
+                    htmlStr += myStack.top();
+                    myStack.pop();
+                }
+                curStatus = Values::NORMAL;
+                handleLine(curStr);
+                curStr = "";
+            }else{
+                int popNum = listLevel - curListLevel;                      //弹出的层数
+                while(popNum >= 0){
+                    if(myStack.top() == endLabel || myStack.top() == otherLabel){   //之前可能为LISTS或ORDEREDLISTS
+                        popNum--;
+                    }
+                    if(popNum != -1){                                       //保留同级的/ul
+                        htmlStr += myStack.top();
+                        myStack.pop();
+                    }
+                }
+                myStack.push(comEndLabel);
+                listLevel = curListLevel;
+                REHandle(curStr, &myRegex, comStartLabel);
+            }
         }
     }
 }
@@ -237,3 +168,182 @@ void Parser::blqLogic(string &curStr) {
         }
     }
 }
+
+/**
+ * 处理每一行的整体逻辑
+ * @param curStr
+ */
+void Parser::handleLine(string& curStr) {
+    blankHandle(curStr);
+    int curListLevel = listCount(curStr);
+    if(regex_search(curStr, Values::LIRegex)){                                      //当前一行为LISTS
+        listLogic(curStr, curListLevel, Values::LISTS, Values::LIRegex,
+                  "<ul>\n<li>", "</ol>\n",
+                  "</ul>\n", "<li>", "</li>\n");
+    }else if(regex_search(curStr, Values::LIORegex)){                               //当前一行为ORDEREDLISTS
+        listLogic(curStr, curListLevel, Values::ORDEREDLISTS, Values::LIORegex,
+                  "<ol start=\'$1\'>\n<li>", "</ul>\n",
+                  "</ol>\n", "<li>", "</li>\n");
+    }else if(curStatus == Values::LISTS || curStatus == Values::ORDEREDLISTS){              //只有三个空行或是一个非空行才会结束列表
+        if(curStr != ""){                                                   //来了新的一类，不再是列表
+            while(!myStack.empty()){                                        //栈中弹出剩余的结束标签
+                htmlStr += myStack.top();
+                myStack.pop();
+            }
+            curStatus = Values::NORMAL;                                     //此时已经不再是列表了
+            listLevel = 0;
+            REHandle(curStr);
+        }
+    }else if(curStr != ""){                                                 //新的非空一行
+        REHandle(curStr);
+    }
+    htmlStr += curStr;
+}
+
+
+/**
+ * 正则表达式处理函数
+ * @param curStr
+ */
+void Parser::REHandle(string &curStr, regex* myRegex, string label) {
+    if(!Values::isInlineCSS){
+        handleHtml(curStr, myRegex, label);
+    }else{
+        handleCSS(curStr, myRegex, label);
+    }
+}
+
+void Parser::handleHtml(string &curStr, regex *myRegex, string label) {
+    if(curStr == "")    return;
+    string temp1;
+    string temp2;
+    if(curStr.length() >= 2){
+        temp1 = curStr.substr(2);                //后部分
+        temp2 = curStr.substr(0, 2);         //前部分
+    }
+//    print("this " + curStr);
+    if(myRegex != nullptr){
+        temp2 = regex_replace(temp2, *myRegex, label);
+        curStr = temp1;
+//        print(curStr);
+    }
+    bool isHead = false;
+    if(regex_search(curStr, Values::H6Regex)){
+        curStr = regex_replace(curStr, Values::H6Regex, "<h6>");
+        curStr = curStr + "</h6>\n";
+        isHead = true;
+    }else if(regex_search(curStr, Values::H5Regex)){
+        curStr = regex_replace(curStr, Values::H5Regex, "<h5>");
+        curStr = curStr + "</h5>\n";
+        isHead = true;
+    }else if(regex_search(curStr, Values::H4Regex)){
+        curStr = regex_replace(curStr, Values::H4Regex, "<h4>");
+        curStr = curStr + "</h4>\n";
+        isHead = true;
+    }else if(regex_search(curStr, Values::H3Regex)){
+        curStr = regex_replace(curStr, Values::H3Regex, "<h3>");
+        curStr = curStr + "</h3>\n";
+        isHead = true;
+    }else if(regex_search(curStr, Values::H2Regex)){
+        curStr = regex_replace(curStr, Values::H2Regex, "<h2>");
+        curStr = curStr + "</h2>\n";
+        isHead = true;
+    }else if(regex_search(curStr, Values::H1Regex)){
+        curStr = regex_replace(curStr, Values::H1Regex, "<h1>");
+        curStr = curStr + "</h1>\n";
+        isHead = true;
+    }
+    if(regex_match(curStr, Values::HORLINRegex)){           //完全匹配才可以
+        curStr = regex_replace(curStr, Values::HORLINRegex, "<hr>\n");
+        return;
+    }
+    curStr = regex_replace(curStr, Values::SERegex, R"(<strong><em>$2</em></strong>)");
+    curStr = regex_replace(curStr, Values::SRegex, R"(<strong>$2</strong>)");
+    curStr = regex_replace(curStr, Values::ERegex, R"(<em>$2</em>)");
+    curStr = regex_replace(curStr, Values::IMGRegex, R"(<img src="$2" alt="$1">)");
+    curStr = regex_replace(curStr, Values::LKSRegex, R"(<a href='$2'>$1</a>)");
+    curStr = regex_replace(curStr, Values::CODERegex, R"(<code>$1</code>)");
+    curStr = regex_replace(curStr, Values::MTNRegex, R"(<s>$1</s>)");
+
+    if(regex_search(curStr, Values::BLQRegex)){                     //blockquote
+        blqLogic(curStr);
+    }else if(curStr.length() == 1 && curStr[0] == '>' && blqFlag){  //>:代表换行，不考虑多个>的情况
+        curStr = "</p>\n";
+        blqMatch = true;
+    }else if(blqFlag){                                              //blockquote后面紧接着一个普通行
+        htmlStr += "</p></blockquote>\n";
+        blqFlag = false;
+    }
+    if(!isHead && listLevel == 0 && curStr != "" && !blqFlag){      //列表中不添加<p>
+        curStr = "<p>" + curStr + "</p>\n";
+    }else if(listLevel != 0){
+        curStr = temp2 + curStr;
+    }
+//    print("last " + curStr);
+//    cout << endl;
+}
+
+void Parser::handleCSS(string &curStr, regex *myRegex, string label) {
+    if(curStr == "")    return;
+    string temp1;
+    string temp2;
+    if(curStr.length() >= 2){
+        temp1 = curStr.substr(2);                //后部分
+        temp2 = curStr.substr(0, 2);          //前部分
+    }
+//    print("this " + curStr);
+    if(myRegex != nullptr){
+        temp2 = regex_replace(temp2, *myRegex, label);
+        curStr = temp1;
+//        print(curStr);
+    }
+    if(regex_search(curStr, Values::H6Regex)){
+        curStr = regex_replace(curStr, Values::H6Regex, R"(<span style="font-size:10px; color:#0000FF">)");  //蓝
+        curStr = curStr + "</span>";
+    }else if(regex_search(curStr, Values::H5Regex)){
+        curStr = regex_replace(curStr, Values::H5Regex, R"(<span style="font-size:13px; color:#00FFFF">)");  //青
+        curStr = curStr + "</span>";
+    }else if(regex_search(curStr, Values::H4Regex)){
+        curStr = regex_replace(curStr, Values::H4Regex, R"(<span style="font-size:15px; color:#000000">)");  //黑
+        curStr = curStr + "</span>";
+    }else if(regex_search(curStr, Values::H3Regex)){
+        curStr = regex_replace(curStr, Values::H3Regex, R"(<span style="font-size:18px; color:#A020F0">)");  //紫
+        curStr = curStr + "</span>";
+    }else if(regex_search(curStr, Values::H2Regex)){
+        curStr = regex_replace(curStr, Values::H2Regex, R"(<span style="font-size:24px; color:#FFA500">)");  //橙
+        curStr = curStr + "</span>";
+    }else if(regex_search(curStr, Values::H1Regex)){
+        curStr = regex_replace(curStr, Values::H1Regex, R"(<span style="font-size:32px; color:#FF0000">)");  //红
+        curStr = curStr + "</span>";
+    }
+    if(regex_match(curStr, Values::HORLINRegex)){           //完全匹配才可以
+        curStr = regex_replace(curStr, Values::HORLINRegex, "<hr>\n");
+        return;
+    }
+    curStr = regex_replace(curStr, Values::SERegex, R"(<span style="font-weight:bold; font-style:italic">$2</span>)");
+    curStr = regex_replace(curStr, Values::SRegex, R"(<span style="font-weight:bold">$2</span>)");
+    curStr = regex_replace(curStr, Values::ERegex, R"(<span style="font-style:italic">$2</span>)");
+    curStr = regex_replace(curStr, Values::IMGRegex, R"(<img src="$2" alt="$1">)");
+    curStr = regex_replace(curStr, Values::LKSRegex, R"(<a href='$2'>$1</a>)");
+    curStr = regex_replace(curStr, Values::CODERegex,
+            R"(<span style = "background-color:#ffeecc; color:rgba(0, 0, 0, 1); padding:1px 4px; border-radius:3px">$1</span>)");
+    curStr = regex_replace(curStr, Values::MTNRegex, R"(<span style="text-decoration:line-through">$1</span>)");
+
+    if(regex_search(curStr, Values::BLQRegex)){                     //blockquote
+        blqLogic(curStr);
+    }else if(curStr.length() == 1 && curStr[0] == '>' && blqFlag){  //>:代表换行，不考虑多个>的情况
+        curStr = "</p>\n";
+        blqMatch = true;
+    }else if(blqFlag){                                              //blockquote后面紧接着一个普通行
+        htmlStr += "</p></blockquote>\n";
+        blqFlag = false;
+    }
+    if(listLevel == 0 && curStr != "" && !blqFlag){      //列表中不添加<p>
+        curStr = "<p>" + curStr + "</p>\n";
+    }else if(listLevel != 0){
+        curStr = temp2 + curStr;
+    }
+//    print("last " + curStr);
+//    cout << endl;
+}
+
