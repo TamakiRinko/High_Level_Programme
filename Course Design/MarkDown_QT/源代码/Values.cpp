@@ -5,18 +5,19 @@
 #include "Parser.h"
 bool Values::isInlineCSS = false;
 bool Values::isOutCSS = false;
+string Values::cssAddress = "/home/rinko/NJU_Study/HighLevelProgramme/MarkDown_QT/";
 string Values::htmlStart = "<!doctype html>\n"
                            "<html>\n"
                            "<head>\n"
-                           "<meta charset='GB2312'><meta name='viewport' content='width=device-width initial-scale=1'>\n"
-                           "<title>Title</title></head>\n"
+                           "<meta charset='UTF-8'><meta name='viewport' content='width=device-width initial-scale=1'>\n"
+                           "<title>你好</title></head>\n"
                            "<body>\n";
 string Values::htmlEnd = "</body>\n"
                          "</html>";
 string Values::CSSStart = "<!DOCTYPE html>\n"
                           "<html>\n"
                           "<head>\n"
-                          "<link rel=\"stylesheet\" type=\"text/css\" href=\"D:/NJU_Study/Qt/MarkDown/markdownCSS.css\">\n"
+                          "<link rel=\"stylesheet\" type=\"text/css\" href=\"" + cssAddress + "markdownCSS.css\">\n"
                           "</head>\n"
                           "<body>";
 regex Values::SERegex(R"((\*\*\*)(.+?)(\*\*\*))");              //加粗斜体

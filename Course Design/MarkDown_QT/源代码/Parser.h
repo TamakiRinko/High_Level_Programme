@@ -24,17 +24,18 @@ using namespace std;
 
 class Values{
 public:
-    static bool isInlineCSS;
-    static bool isOutCSS;
-    enum Status{
-        NORMAL, LISTS, ORDEREDLISTS
+    static bool isInlineCSS;				//是否为内联CSS
+    static bool isOutCSS;					//是否为外部CSS
+    static string cssAddress;               //CSS文件所在地址
+
+    enum Status{							//文件处理过程中的三种状态
+        NORMAL, LISTS/*列表*/, ORDEREDLISTS/*有序列表*/
     };
-    //开头部分
-    static string htmlStart;
-    //结尾部分
-    static string htmlEnd;
-    //外部式CSS开头
-    static string CSSStart;
+
+    static string htmlStart;				//HTML开头部分
+    static string htmlEnd;					//HTML结尾部分
+    static string CSSStart;					//外部式CSS开头部分
+
     //正则表达式
     static regex SERegex;
     static regex SRegex;

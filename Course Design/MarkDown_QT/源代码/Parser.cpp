@@ -4,8 +4,8 @@
 #include "Parser.h"
 
 Parser::Parser(const char *inFileName, const char* outFileName) {
-    print(inFileName);
-    print(outFileName);
+//    print(inFileName);
+//    print(outFileName);
     fin.open(inFileName, ios::in);
     fout.open(outFileName, ios::out);
     if(!fin.is_open()){
@@ -118,7 +118,7 @@ void Parser::listLogic(string &curStr, int curListLevel, Values::Status status, 
                 handleLine(curStr);
                 curStr = "";
             }else{
-                while(myStack.top() != endLabel){                           //直至只剩列表结束符</ul>或</ol>
+                while(!myStack.empty() && myStack.top() != endLabel){                           //直至只剩列表结束符</ul>或</ol>
                     htmlStr += myStack.top();
                     myStack.pop();
                 }
@@ -136,7 +136,7 @@ void Parser::listLogic(string &curStr, int curListLevel, Values::Status status, 
                 curStr = "";
             }else{
                 int popNum = listLevel - curListLevel;                      //弹出的层数
-                while(popNum >= 0){
+                while(!myStack.empty() && popNum >= 0){
                     if(myStack.top() == endLabel || myStack.top() == otherLabel){   //之前可能为LISTS或ORDEREDLISTS
                         popNum--;
                     }

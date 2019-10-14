@@ -19,14 +19,19 @@ class MainWindow : public QMainWindow
     Q_OBJECT
 
 public:
-    MainWindow(QWidget *parent = nullptr);
+    MainWindow(bool isMDFile, QWidget *parent = nullptr);
     ~MainWindow();
 private:
+    MainWindow* htmlWindow;         //展示html文件的窗口
+    QString htmlFileName;           //html文件的名称
     bool firstTime;                 //是否为第一次保存
     bool isInlineCSS;               //是否为内联式
     bool isOutCSS;                  //是否为外部式
+
     QTextEdit* mainText;            //编辑的文字
-    QString fileName;               //当前文件名
+    QString fileName;               //导入文件名
+    QString thisFileName;           //当前打开文件名
+    bool isMDFile;                  //当前打开文件是否为md文件
 
     QMenuBar* menubar;              //菜单栏
     QMenu* fileMenu;                //文件菜单
@@ -52,8 +57,10 @@ private:
     QAction* horizonAction;         //水平线
     QAction* blockquoteAction;      //引用
     void setAction();               //设定槽函数
-    void loadFile();                //加载一个文件
-//    void selectBlock(QTextCharFormat fmt);      //设置光标的选区
+    void loadFile(QString fileName);                //加载一个文件
+    void setReadOnly();             //设定text为只读
+    void setWritten();              //恢复可编辑
+
 protected slots:                    //槽函数
     void newFile();                 //新建文件
     void openFile();                //打开文件
@@ -73,6 +80,7 @@ protected slots:                    //槽函数
     void horizon();                 //水平线
     void blockquote();              //引用
     void closeEvent(QCloseEvent* event);         //关闭时的操作
+    void handleFile();              //转换成HTML文件并展示
 
 };
 

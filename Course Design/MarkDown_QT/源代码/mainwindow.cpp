@@ -1,18 +1,34 @@
 #include "mainwindow.h"
 
-MainWindow::MainWindow(QWidget *parent)
+MainWindow::MainWindow(bool isMDFile, QWidget *parent)
     : QMainWindow(parent){
+    QDir temDir("markdownCSS.css");
+    QString filePath = temDir.absolutePath();
+    cout << filePath.toStdString();
     fileName = "";
+    thisFileName = "";
     firstTime = true;
     isOutCSS = false;
     isInlineCSS = false;
+    htmlWindow = nullptr;
+    this->isMDFile = isMDFile;
+
+    //设定窗口大小
     this->resize(1000, 600);
+    //设置字体大小
     QFont font;
     font.setPointSize(16);
     mainText = new QTextEdit;
     mainText->setFont(font);
+    //设定Tab键长度为4个空格
+    QFontMetrics metrics(mainText->font());
+    mainText->setTabStopWidth(4 * metrics.width(' '));
+    //设定编辑器位于窗口中间
     setCentralWidget(mainText);
-    setAction();
+
+    if(isMDFile){                       //不是Markdown文件不配置菜单栏，快捷键等
+        setAction();
+    }
 
 }
 
@@ -151,7 +167,7 @@ void MainWindow::setAction(){
  * 新建一个文件
  */
 void MainWindow::newFile(){
-    MainWindow* newWindow = new MainWindow;
+    MainWindow* newWindow = new MainWindow(true);
     newWindow->show();
 }
 
@@ -161,16 +177,17 @@ void MainWindow::newFile(){
  */
 void MainWindow::openFile(){
     fileName = QFileDialog::getOpenFileName(this);
-    if(mainText->document()->isEmpty()){        //当前窗口为空，直接放入
-       loadFile();
-    }else{                                      //当一个窗口非空，新建窗口
-       MainWindow* newWindow = new MainWindow;
-       newWindow->loadFile();
+    if(fileName == "")  return;
+    if(mainText->document()->isEmpty() && thisFileName == ""){          //当前窗口为空，且还未加载过文件，直接放入
+       loadFile(fileName);
+    }else{                                                              //当一个窗口非空，新建窗口
+       MainWindow* newWindow = new MainWindow(true);
+       newWindow->loadFile(fileName);
        newWindow->show();
     }
 }
 
-void MainWindow::loadFile(){
+void MainWindow::loadFile(QString fileName){
     QFile file(fileName);
     QString str;
     if(!file.open(QIODevice::ReadOnly | QIODevice::Text)){
@@ -179,94 +196,75 @@ void MainWindow::loadFile(){
         return;
     }
     QTextStream qTextStream(&file);
+    mainText->document()->clear();
     while(!qTextStream.atEnd()){
         str = qTextStream.readLine();
         mainText->append(str);
     }
     file.close();
+    mainText->document()->setModified(false);
     setWindowTitle(fileName);
+    thisFileName = fileName;                //设定本窗口打开的文件名
+//    cout << fileName.mid(thisFileName.size() - 2, 2).toStdString() << endl;
+    if(isMDFile){                           //打开的是.md文件
+        htmlFileName = thisFileName.mid(0, thisFileName.size() - 2) + "html";       //设定相应的HTML文件名
+    }else{
+        htmlFileName = "";
+    }
     return;
 }
 
 bool MainWindow::saveFile(){
-    if(fileName == ""){                 //选择文件名和地址
-        fileName = QFileDialog::getSaveFileName(this, tr("Save as"), "");
+    if(thisFileName == ""){                 //选择文件名和地址
+        thisFileName = QFileDialog::getSaveFileName(this, tr("Save as"), "");
     }
-    if(fileName == "")  return false;
-    fileName = fileName.toUtf8();
-    QFile file(fileName);
+    if(thisFileName == "")  return false;   //叉掉了
+    thisFileName = thisFileName.toUtf8();
+    QFile file(thisFileName);
     if(!file.open(QFile::WriteOnly | QFile::Text)){
         QMessageBox::warning(this,tr("save file"),tr("cannot save file %1:\n %2")
-                             .arg(fileName).arg(file.errorString()));
+                             .arg(thisFileName).arg(file.errorString()));
         return false;
     }
     QTextStream qTextStream(&file);
     qTextStream << mainText->toPlainText();
     file.close();
-    setWindowTitle(fileName);
+    setWindowTitle(thisFileName);
     mainText->document()->setModified(false);
-    //保存后进行处理
-    if(firstTime){
-        QMessageBox box(QMessageBox::Warning, "Style", "请选择输出样式：\n");
-        box.setStandardButtons(QMessageBox::Yes | QMessageBox::No |  QMessageBox::Apply | QMessageBox::Cancel);
-        box.setButtonText(QMessageBox::Yes, QString("内联CSS"));
-        box.setButtonText(QMessageBox::No, QString("外部CSS"));
-        box.setButtonText(QMessageBox::Apply, QString("无CSS"));
-        box.setButtonText(QMessageBox::Cancel, QString("取消"));
-        int button = box.exec();
-        if(button == QMessageBox::Yes){
-            Values::isInlineCSS = true;
-        }else if(button == QMessageBox::No){
-            Values::isOutCSS = true;
-        }else if(button == QMessageBox::Cancel){
-            return true;
-        }
-        isOutCSS = Values::isOutCSS;
-        isInlineCSS = Values::isInlineCSS;
-        firstTime = false;
-    }
-    Values::isOutCSS = isOutCSS;
-    Values::isInlineCSS = isInlineCSS;
-    string htmlName = fileName.toStdString().substr(0, fileName.toStdString().size() - 2) + "html";
-    Parser parser(fileName.toStdString().c_str() , htmlName.c_str());
-    parser.Handle();
+
+    handleFile();                           //处理文件
+
     return true;
 }
 
-void MainWindow::closeEvent(QCloseEvent* event)
-{
-    if (mainText->document()->isModified()){
-        int temp = QMessageBox::information(this, "Message", "文件未保存，是否保存？", QMessageBox::Yes | QMessageBox::No | QMessageBox::Cancel);
-        if (temp == QMessageBox::Yes){              //保存
-            if(saveFile()){
+void MainWindow::closeEvent(QCloseEvent* event){
+    if(isMDFile && htmlWindow != nullptr){                                       //MD文件，同时关闭HTML文件
+        if (mainText->document()->isModified()){
+            int temp = QMessageBox::information(this, "Message", "文件未保存，是否保存？", QMessageBox::Yes | QMessageBox::No | QMessageBox::Cancel);
+            if (temp == QMessageBox::Yes){              //保存
+                if(saveFile()){
+                    event->accept();
+                    htmlWindow->close();
+                }else{
+                    event->ignore();
+                }
+            }
+            else if(temp == QMessageBox::No){           //不保存
                 event->accept();
-            }else{
+                htmlWindow->close();
+            }else{                                      //取消关闭
                 event->ignore();
             }
         }
-        else if(temp == QMessageBox::No){           //不保存
+        else{
             event->accept();
-        }else{                                      //取消关闭
-            event->ignore();
+            htmlWindow->close();
         }
-    }
-    else{
+    }else{                                              //普通文件，直接关闭
         event->accept();
     }
 }
 
-///**
-// * @brief MainWindow::mergeFormat
-// * @param fmt
-// * 设置光标的选区
-// */
-//void MainWindow::selectBlock(QTextCharFormat fmt){
-//    QTextCursor cursor = mainText->textCursor();
-//    if (!cursor.hasSelection()) {
-//       cursor.select(QTextCursor::WordUnderCursor);
-//    }
-//    cursor.mergeCharFormat(fmt);
-//}
 
 void MainWindow::strong(){
     QTextCursor qTextCursor = mainText->textCursor();
@@ -426,4 +424,50 @@ void MainWindow::blockquote(){
     QTextCursor qTextCursor = mainText->textCursor();
     qTextCursor.movePosition(QTextCursor::StartOfBlock);
     qTextCursor.insertText("> ");
+}
+
+void MainWindow::setReadOnly(){
+    mainText->setReadOnly(true);
+}
+
+void MainWindow::setWritten(){
+    mainText->setReadOnly(false);
+}
+
+void MainWindow::handleFile(){
+    //保存后进行处理
+    if(firstTime){
+        htmlFileName = (thisFileName.mid(0, thisFileName.size() - 2) + "html").toUtf8();       //设定相应的HTML文件名
+        QMessageBox box(QMessageBox::Warning, "Style", "请选择输出样式：\n");
+        box.setStandardButtons(QMessageBox::Yes | QMessageBox::No |  QMessageBox::Apply | QMessageBox::Cancel);
+        box.setButtonText(QMessageBox::Yes, QString("内联CSS"));
+        box.setButtonText(QMessageBox::No, QString("外部CSS"));
+        box.setButtonText(QMessageBox::Apply, QString("无CSS"));
+        box.setButtonText(QMessageBox::Cancel, QString("取消"));
+        int button = box.exec();
+        if(button == QMessageBox::Yes){
+            Values::isInlineCSS = true;
+        }else if(button == QMessageBox::No){
+            Values::isOutCSS = true;
+        }else if(button == QMessageBox::Cancel){
+            return;
+        }
+        isOutCSS = Values::isOutCSS;
+        isInlineCSS = Values::isInlineCSS;
+        firstTime = false;
+        htmlWindow = new MainWindow(false);                         //HTML文件
+        htmlWindow->show();
+    }
+    if(htmlWindow->isHidden()){                                     //窗口被关闭，重新打开
+        htmlWindow = new MainWindow(false);                         //HTML文件
+        htmlWindow->show();
+    }
+    Values::isOutCSS = isOutCSS;
+    Values::isInlineCSS = isInlineCSS;
+    Parser parser(thisFileName.toStdString().c_str() , htmlFileName.toStdString().c_str());
+    parser.Handle();
+
+    htmlWindow->setWritten();
+    htmlWindow->loadFile(htmlFileName);
+    htmlWindow->setReadOnly();
 }
