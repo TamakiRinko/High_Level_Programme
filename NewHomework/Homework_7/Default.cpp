@@ -20,5 +20,5 @@ public:
 
 int main(){
     Shape* r = new Rectangle();
-    r->draw();
+    r->draw(); 
 }
