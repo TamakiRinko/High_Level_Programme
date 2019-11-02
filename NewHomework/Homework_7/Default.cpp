@@ -21,5 +21,4 @@ public:
 int main(){
     Shape* r = new Rectangle();
     r->draw();
-    cout << "你好!" << endl;
 }
