@@ -4,3 +4,10 @@
 cmake-build-debug
 .idea
 CMakeLists.txt
+*.ilk
+*.pdb
+*.sln
+*.sdf
+*.obj
+*.idb
+*.tlog
