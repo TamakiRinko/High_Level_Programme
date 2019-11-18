@@ -44,7 +44,7 @@ public:
 
 class Motor {
 protected:
-    Engine e;
+    Engine e;                                               //聚合，摩托车中有引擎
 public:
     Motor(double initOil): e(initOil){}
     Motor(double initOil, Quality initQuality): e(initOil, initQuality){}
@@ -59,7 +59,7 @@ public:
     }
 };
 
-class AdvancedMotor :public Motor{
+class AdvancedMotor :public Motor{                          //继承，高级摩托车是特殊的摩托车
 private:
     
 public:
