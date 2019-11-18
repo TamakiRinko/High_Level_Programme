@@ -11,3 +11,9 @@ CMakeLists.txt
 *.obj
 *.idb
 *.tlog
+*.log
+*.user
+*.vcxproj
+*.filters
+*.aps
+*.suo
