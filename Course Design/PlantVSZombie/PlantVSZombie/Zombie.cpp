@@ -9,13 +9,22 @@
 extern Plant* plantList[MAP_ROW][MAP_COL];									//存在的植物列表
 extern mutex plantListMutex;												//植物列表互斥锁
 extern bool gameOver;														//游戏结束
-extern Map map;																//地图
+extern Map gameMap;															//地图
 extern int arriveSequence[MAP_ROW][MAP_COL];								//僵尸到达某点的次序
 extern Paint paint;															//画笔
 extern int curScore;														//得分
 
 extern void arriveSequenceAdd(int x, int y);
 extern void removePlant(int x, int y);
+
+Zombie::Zombie(ZombieType zombieType, Point* point) : arriveTime(0), slowDownInterval(0), isSlowDown(false), isDead(false) {
+	speed = zombieMap[zombieType].getSpeed();
+	attackPower = zombieMap[zombieType].getAttackPower();
+	color = zombieMap[zombieType].getColor();
+	score = zombieMap[zombieType].getScore();
+	remainBlood = zombieMap[zombieType].getRemainBlood();
+	this->point = *point;
+}
 
 Zombie::Zombie(int speed, int attackPower, const Point &point, Color color, int score, int remainBlood) :
 MoveObject(speed, attackPower, point, color, remainBlood), arriveTime(0), score(score), slowDownInterval(0), isSlowDown(false), isDead(false){}
@@ -47,8 +56,8 @@ void Zombie::slowDown(){
 }
 
 void Zombie::move(int k){
-	map.reset(point.x, point.y);
-	map.setZombie(point.x, point.y - k);
+	gameMap.reset(point.x, point.y);
+	gameMap.setZombie(point.x, point.y - k);
 	paint.paintBlank(point.x, point.y);									//原位置置为空白
 	point.y = point.y - k;
 	isModified = true;
@@ -84,29 +93,29 @@ void Zombie::start(){
 	}
 	
 	interval++;
-	if (interval >= 30 / speed && map.isPlant(point.x, point.y - 1)) {				//是植物，吃
+	if (interval >= 30 / speed && gameMap.isPlant(point.x, point.y - 1)) {				//是植物，吃
 		interval = 0;
 		if (plantList[point.x][point.y - 1] != nullptr && plantList[point.x][point.y - 1]->attacked(attackPower)) {
 			removePlant(point.x, point.y - 1);
 		}
 		else if (dynamic_cast<Garlic*>(plantList[point.x][point.y - 1])) {		//大蒜类型
-			map.reset(point.x, point.y);
+			gameMap.reset(point.x, point.y);
 			paint.paintBlank(point.x, point.y);									//原位置置为空白
 
 			//移动
-			if (point.x == 0 && !map.isPlant(point.x + 1, point.y)) {
+			if (point.x == 0 && !gameMap.isPlant(point.x + 1, point.y)) {
 				point.x = point.x + 1;
 			}
-			else if (point.x == MAP_ROW - 1 && !map.isPlant(point.x - 1, point.y)) {
+			else if (point.x == MAP_ROW - 1 && !gameMap.isPlant(point.x - 1, point.y)) {
 				point.x = point.x - 1;
 			}
-			else if (point.x > 0 && !map.isPlant(point.x - 1, point.y)) {
+			else if (point.x > 0 && !gameMap.isPlant(point.x - 1, point.y)) {
 				point.x = point.x - 1;
 			}
-			else if (point.x > 0 && !map.isPlant(point.x + 1, point.y)) {
+			else if (point.x > 0 && !gameMap.isPlant(point.x + 1, point.y)) {
 				point.x = point.x + 1;
 			}
-			map.setZombie(point.x, point.y);
+			gameMap.setZombie(point.x, point.y);
 			isModified = true;
 
 			//设置到达时间
@@ -114,7 +123,7 @@ void Zombie::start(){
 			arriveSequenceAdd(point.x, point.y);
 		}
 	}//TODO: 子弹与僵尸碰撞过程
-	else if (interval >= 240 / speed && map.isNotOccupied(point.x, point.y - 1)) {	//无东西，前进
+	else if (interval >= 240 / speed && gameMap.isNotOccupied(point.x, point.y - 1)) {	//无东西，前进
 		interval = 0;
 		move(1);
 		if (point.y == 0) {									//TODO: 暂时如此

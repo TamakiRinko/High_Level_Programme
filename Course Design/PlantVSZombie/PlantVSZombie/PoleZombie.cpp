@@ -7,20 +7,25 @@
 #include "Paint.h"
 #include "Garlic.h"
 #include "HighNut.h"
+#include "ZombieReflector.h"
 
 extern Plant* plantList[MAP_ROW][MAP_COL];									//存在的植物列表
 extern mutex plantListMutex;												//植物列表互斥锁
 extern bool gameOver;														//游戏结束
-extern Map map;																//地图
+extern Map gameMap;																//地图
 extern int arriveSequence[MAP_ROW][MAP_COL];								//僵尸到达某点的次序
 extern Paint paint;															//画笔
 
 extern void arriveSequenceAdd(int x, int y);
 extern void removePlant(int x, int y);
 
+ZOMBIEREFLECT(PoleZombie, (int)ZombieType::POLE)
+
 PoleZombie::PoleZombie(int speed, int attackPower, const Point &point, Color color, int score, int remainBlood) :
 Zombie(speed, attackPower, point, color, score, remainBlood), hasPole(true){
 }
+
+PoleZombie::PoleZombie(ZombieType zombieType, Point* point): Zombie(zombieType, point), hasPole(true){}
 
 bool PoleZombie::jump(){
 	if (hasPole){
@@ -33,7 +38,7 @@ bool PoleZombie::jump(){
 			gameOver = true;
 			return true;
 		}
-		if (map.isPlant(point.x, point.y - 2)){							//不尝试跳跃
+		if (gameMap.isPlant(point.x, point.y - 2)){							//不尝试跳跃
 			return false;
 		}
 		//跳跃，移动2格
@@ -58,7 +63,7 @@ void PoleZombie::start() {
 	}
 
 	interval++;
-	if (interval >= 30 / speed && map.isPlant(point.x, point.y - 1)) {				//是植物，吃
+	if (interval >= 30 / speed && gameMap.isPlant(point.x, point.y - 1)) {				//是植物，吃
 		interval = 0;
 
 		if (jump()){
@@ -69,23 +74,23 @@ void PoleZombie::start() {
 			removePlant(point.x, point.y - 1);
 		}
 		else if (dynamic_cast<Garlic*>(plantList[point.x][point.y - 1])) {		//大蒜类型
-			map.reset(point.x, point.y);
+			gameMap.reset(point.x, point.y);
 			paint.paintBlank(point.x, point.y);									//原位置置为空白
 
 			//移动
-			if (point.x == 0 && !map.isPlant(point.x + 1, point.y)) {
+			if (point.x == 0 && !gameMap.isPlant(point.x + 1, point.y)) {
 				point.x = point.x + 1;
 			}
-			else if (point.x == MAP_ROW - 1 && !map.isPlant(point.x - 1, point.y)) {
+			else if (point.x == MAP_ROW - 1 && !gameMap.isPlant(point.x - 1, point.y)) {
 				point.x = point.x - 1;
 			}
-			else if (point.x > 0 && !map.isPlant(point.x - 1, point.y)) {
+			else if (point.x > 0 && !gameMap.isPlant(point.x - 1, point.y)) {
 				point.x = point.x - 1;
 			}
-			else if (point.x > 0 && !map.isPlant(point.x + 1, point.y)) {
+			else if (point.x > 0 && !gameMap.isPlant(point.x + 1, point.y)) {
 				point.x = point.x + 1;
 			}
-			map.setZombie(point.x, point.y);
+			gameMap.setZombie(point.x, point.y);
 			isModified = true;
 
 			//设置到达时间
@@ -93,7 +98,7 @@ void PoleZombie::start() {
 			arriveSequenceAdd(point.x, point.y);
 		}
 	}//TODO: 子弹与僵尸碰撞过程
-	else if (interval >= 240 / speed && map.isNotOccupied(point.x, point.y - 1)) {	//无东西，前进
+	else if (interval >= 240 / speed && gameMap.isNotOccupied(point.x, point.y - 1)) {	//无东西，前进
 		interval = 0;
 		move(1);
 		if (point.y == 0) {									//TODO: 暂时如此

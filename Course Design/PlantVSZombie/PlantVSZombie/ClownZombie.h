@@ -13,6 +13,7 @@ private:
 	bool explosion();
 public:
 	ClownZombie(int speed, int attackPower, const Point &point, Color color, int score, int remainBlood);
+	ClownZombie(ZombieType zombieType, Point* point);
 	void start() override;
 	void draw() override;
 };

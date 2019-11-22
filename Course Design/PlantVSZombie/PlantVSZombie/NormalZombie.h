@@ -9,6 +9,7 @@
 
 class NormalZombie : public Zombie {
 public:
+	NormalZombie(ZombieType zombieType, Point* point);
 	NormalZombie(int speed, int attackPower, const Point &point, Color color, int score, int remainBlood);
 
 	void draw() override;

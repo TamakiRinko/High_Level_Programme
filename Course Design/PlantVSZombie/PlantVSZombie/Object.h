@@ -14,6 +14,7 @@
 #include <unordered_set>
 #include <conio.h>
 #include "Map.h"
+#include <fstream>
 using namespace std;
 
 const int ZOMBIE_TYPE_NUM = 4;
@@ -30,6 +31,7 @@ class Point{
 public:
 	int x;
 	int y;
+	Point() {}
 	Point(int xPos, int yPos){
 		x = xPos;
 		y = yPos;
@@ -59,10 +61,10 @@ protected:
 	int attackPower;                                        //攻击力
 	Point point;                                            //位置
 	Color color;											//物体颜色
-	// bool isRunning;											//物体是否还存在
 	bool isModified;										//是否改变过
 	int interval;											//动作的间隔
 public:
+	Object();
 	Object(int attackPower, const Point &point, Color color, int remainBlood);
 
 	void setTextColor();

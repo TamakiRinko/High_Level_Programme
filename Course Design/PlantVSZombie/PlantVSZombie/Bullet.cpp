@@ -7,7 +7,7 @@
 extern vector<Zombie* > zombieList;										//存在的僵尸列表
 extern mutex zombieListMutex;											//僵尸列表互斥锁
 extern unordered_set<Bullet* > bulletList;								//存在的子弹列表
-extern Map map;															//地图
+extern Map gameMap;															//地图
 extern Paint paint;														//画笔
 
 Bullet::Bullet(int speed, int attackPower, const Point &point, Color color, int remainBlood) :
@@ -25,7 +25,7 @@ void Bullet::start(){
 		int yPos = point.y / 16;
 		int xPos = point.x / 9;
 
-		if (map.isZombie(xPos, yPos)) {								//前方为僵尸
+		if (gameMap.isZombie(xPos, yPos)) {								//前方为僵尸
 			unsigned int time = 0x7fffffff;
 			Zombie* zombie = nullptr;
 			int index = 0;												//需要删除的僵尸
@@ -44,7 +44,7 @@ void Bullet::start(){
 					zombieList.erase(zombieList.begin() + index);
 					zombieListMutex.unlock();
 					paint.paintBlank(xPos, yPos);
-					map.reset(xPos, yPos);
+					gameMap.reset(xPos, yPos);
 				}
 				//子弹命中，则子弹消失
 				isDead = true;
@@ -60,7 +60,7 @@ void Bullet::start(){
 }
 
 void Bullet::draw(){
-	// if (map.isPlant(point.x / 9, point.y / 16) || map.isZombie(point.x / 9, point.y / 16)) {
+	// if (gameMap.isPlant(point.x / 9, point.y / 16) || gameMap.isZombie(point.x / 9, point.y / 16)) {
 	// 	return; 
 	// }
 	setTextColor();

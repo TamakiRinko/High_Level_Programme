@@ -9,6 +9,8 @@ ostream& operator<<(ostream& out, const Point& point){
 	return out;
 }
 
+Object::Object() : isModified(true), interval(0) {}
+
 Object::Object(int attackPower, const Point &point, Color color, int remainBlood) :
 remainBlood(remainBlood), attackPower(attackPower), point(point), color(color), /*isRunning(false),*/ isModified(true), interval(0){}
 

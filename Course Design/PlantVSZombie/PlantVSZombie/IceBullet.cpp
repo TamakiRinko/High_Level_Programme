@@ -7,7 +7,7 @@
 extern vector<Zombie* > zombieList;										//存在的僵尸列表
 extern mutex zombieListMutex;											//僵尸列表互斥锁
 extern unordered_set<Bullet* > bulletList;								//存在的子弹列表
-extern Map map;															//地图
+extern Map gameMap;															//地图
 extern Paint paint;														//画笔
 
 IceBullet::IceBullet(int speed, int attackPower, const Point &point, Color color, int remainBlood) :
@@ -26,7 +26,7 @@ void IceBullet::start() {
 		int yPos = point.y / 16;
 		int xPos = point.x / 9;
 
-		if (map.isZombie(xPos, yPos)) {								//前方为僵尸
+		if (gameMap.isZombie(xPos, yPos)) {								//前方为僵尸
 			unsigned int time = 0x7fffffff;
 			Zombie* zombie = nullptr;
 			int index = 0;												//需要删除的僵尸
@@ -45,7 +45,7 @@ void IceBullet::start() {
 					zombieList.erase(zombieList.begin() + index);
 					zombieListMutex.unlock();
 					paint.paintBlank(xPos, yPos);
-					map.reset(xPos, yPos);
+					gameMap.reset(xPos, yPos);
 				} else{														//未杀死，缓速
 					zombie->slowDown();
 				}

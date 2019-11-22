@@ -12,6 +12,7 @@ private:
 	bool hasPole;
 public:
 	PoleZombie(int speed, int attackPower, const Point &point, Color color, int score, int remainBlood);
+	PoleZombie(ZombieType zombieType, Point* point);
 	bool jump();
 	void start() override;
 	void draw() override;

@@ -12,6 +12,7 @@ private:
 	bool hasRoadBlock;
 public:
 	RoadBlockZombie(int speed, int attackPower, const Point &point, Color color, int score, int remainBlood = 200, bool hasRoadBlock = true);
+	RoadBlockZombie(ZombieType zombieType, Point* point);
 	void draw() override;
 	bool attacked(int damage) override;
 };

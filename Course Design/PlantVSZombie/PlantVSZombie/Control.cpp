@@ -4,7 +4,7 @@
 
 #include "Control.h"
 
-Map map(MAP_ROW, MAP_COL);										//全局地图
+Map gameMap(MAP_ROW, MAP_COL);										//全局地图
 Shop shop(SHOP_ROW, SHOP_COL);										//全局商店
 vector<Zombie* > zombieList;										//存在的僵尸列表
 Plant* plantList[MAP_ROW][MAP_COL];									//存在的植物列表，二维指针数组
@@ -37,11 +37,11 @@ void removePlant(int x, int y){
 	plantList[x][y] = nullptr;
 	plantListMutex.unlock();
 	paint.paintBlank(x, y);			//重置为空白
-	map.reset(x, y);				//地图设置
+	gameMap.reset(x, y);				//地图设置
 }
 
 
-Control::Control() /*: map(MAP_ROW, MAP_COL), shop(SHOP_ROW, SHOP_COL)*/ {
+Control::Control() /*: gameMap(MAP_ROW, MAP_COL), shop(SHOP_ROW, SHOP_COL)*/ {
 	curSunNum = 1000;
 	curScore = 0;
 	for (int i = 0; i < MAP_ROW; ++i){
@@ -201,11 +201,11 @@ bool Control::modeCapture(char key) {
 			if (keyBoardMode == SHOPMODE){						//选择植物
 				buyPlant();
 			} else if (keyBoardMode == MAPMODE){				//选择位置，种植植物
-				if (map.isNotOccupied(curMapPos->x, curMapPos->y)){
+				if (gameMap.isNotOccupied(curMapPos->x, curMapPos->y)){
 					generatePlant();
 				}
 			} else if (keyBoardMode == SHOVELMODE){
-				if (map.isPlant(curMapPos->x, curMapPos->y)){
+				if (gameMap.isPlant(curMapPos->x, curMapPos->y)){
 					shovelPlant();
 				}
 			}
@@ -362,7 +362,7 @@ void Control::generatePlant() {
 	curSunNum = curSunNum - curPlantCost;					//花费阳光
 	curSunNumMutex.unlock();
 	paint.paintSunNum();
-	map.setPlant(curMapPos->x, curMapPos->y);			//地图设置
+	gameMap.setPlant(curMapPos->x, curMapPos->y);			//地图设置
 
 	paint.paintBlankMap(curMapPos->x, curMapPos->y);	//格子重新绘制为白色
 	
@@ -398,27 +398,28 @@ void Control::generateZombie() {
 		int type = rand() % ZOMBIE_TYPE_NUM;
 		// int type = 3;
 
-		Zombie* zombie = nullptr;
-		switch (type) {
-		case 0: {
-			zombie = new NormalZombie(2, 20, *point, ORIGIN, 5, 100);
-			break;
-		}
-		case 1: {
-			zombie = new RoadBlockZombie(2, 20, *point, LITEPINK, 10, 200, true);
-
-			break;
-		}
-		case 2: {
-			zombie = new ClownZombie(3, 10, *point, GREEN, 20, 50);
-			break;
-		}
-		case 3: {
-			zombie = new PoleZombie(4, 20, *point, PINK, 20, 150);
-			break;
-		}
-		default: break;
-		}
+		// Zombie* zombie = nullptr;
+		// switch (type) {
+		// case 0: {
+		// 	zombie = new NormalZombie(2, 20, *point, ORIGIN, 5, 100);
+		// 	break;
+		// }
+		// case 1: {
+		// 	zombie = new RoadBlockZombie(2, 20, *point, LITEPINK, 10, 200);
+		// 	break;
+		// }
+		// case 2: {
+		// 	zombie = new ClownZombie(3, 10, *point, GREEN, 20, 50);
+		// 	break;
+		// }
+		// case 3: {
+		// 	zombie = new PoleZombie(4, 20, *point, PINK, 20, 150);
+		// 	break;
+		// }
+		// default: break;
+		// }
+		Zombie* zombie = getNewInstance<Zombie>(ZombieType(type), point);
+		
 		
 		zombie->setArriveTime(arriveSequence[point->x][point->y]);								//设置到达次序
 
@@ -429,7 +430,7 @@ void Control::generateZombie() {
 		arriveSequenceAdd(point->x, point->y);
 		// cout << "坐标: " << zombie->getPoint() << ", 类型" << type << endl;
 
-		map.setZombie(point->x, point->y);
+		gameMap.setZombie(point->x, point->y);
 
 	}
 }

@@ -21,6 +21,7 @@
 #include "HighNut.h"
 #include "Shop.h"
 #include "Paint.h"
+#include "ZombieReflector.h"
 
 #include <random>
 

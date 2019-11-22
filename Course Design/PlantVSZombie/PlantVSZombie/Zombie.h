@@ -7,10 +7,39 @@
 
 #include "MoveObject.h"
 #include "Plant.h"
+#include <map>
 
 enum ZombieType{
-	NORMAL, ROADBLOCK
+	NORMAL, ROADBLOCK, CLOWN, POLE
 };
+
+class ZombieInfo{
+public:
+	ZombieInfo() {}
+	ZombieInfo(int speed, int attackPower, Color color, int score, int remainBlood):
+		speed(speed), attackPower(attackPower), color(color), score(score), remainBlood(remainBlood) {}
+	friend ifstream& operator>>(ifstream& fin, ZombieInfo& z){
+		int colorNum;
+		fin >> z.speed >> z.attackPower >> colorNum >> z.score >> z.remainBlood;
+		z.color = Color(colorNum);
+		return fin;
+	}
+
+
+	int getSpeed() const{ return speed; }
+	int getAttackPower() const{ return attackPower; }
+	Color getColor() const{ return color; }
+	int getScore() const{ return score; }
+	int getRemainBlood() const{ return remainBlood; }
+private:
+	int speed;												//速度
+	int attackPower;                                        //攻击力
+	Color color;											//物体颜色
+	int score;												//击败的得分
+	int remainBlood;                                        //剩余血量
+};
+
+extern map<ZombieType, ZombieInfo> zombieMap;
 
 class Zombie : public MoveObject {
 protected:
@@ -22,6 +51,7 @@ protected:
 	Color preColor;											//缓速前的颜色
 	bool isDead;											//是否死亡
 public:
+	Zombie(ZombieType zombieType, Point* point);
 	Zombie(int speed, int attackPower, const Point &point, Color color, int score, int remainBlood = 100);
 	void setArriveTime(int a);
 	int getArriveTime();

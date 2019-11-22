@@ -3,6 +3,11 @@
 //
 
 #include "NormalZombie.h"
+#include "ZombieReflector.h"
+
+ZOMBIEREFLECT(NormalZombie, (int)ZombieType::NORMAL)
+
+NormalZombie::NormalZombie(ZombieType zombieType, Point* point): Zombie(zombieType, point) {}
 
 NormalZombie::NormalZombie(int speed, int attackPower, const Point &point, Color color, int score, int remainBlood) :
 	Zombie(speed, attackPower, point, color, score, remainBlood) {}

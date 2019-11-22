@@ -11,6 +11,7 @@ class MoveObject : public Object {
 protected:
 	int speed;
 public:
+	MoveObject() {}
 	MoveObject(int speed, int attackPower, const Point &point, Color color, int remainBlood);
 };
 

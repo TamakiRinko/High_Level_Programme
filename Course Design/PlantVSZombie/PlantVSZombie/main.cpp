@@ -1,4 +1,7 @@
 #include "Control.h"
+#include "ZombieReflector.h"
+
+map<ZombieType, ZombieInfo> zombieMap;
 
 int main(){
 	//控制台最大化
@@ -9,6 +12,18 @@ int main(){
 	GetConsoleCursorInfo(handle, &CursorInfo);
 	CursorInfo.bVisible = false; 
 	SetConsoleCursorInfo(handle, &CursorInfo);
+
+	//读入文件，获取僵尸信息
+	ifstream fin;
+	fin.open("ZombieInfo.txt");
+	ZombieInfo zombie_info;
+	int typeNum = 0;
+	fin >> zombie_info;
+	while(!fin.fail()){
+		zombieMap[ZombieType(typeNum)] = zombie_info;
+		typeNum++;
+		fin >> zombie_info;
+	}
 	
 	Control* control = new Control();
 	control->start();
