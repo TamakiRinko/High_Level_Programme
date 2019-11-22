@@ -21,16 +21,16 @@ int main(int argc, char const *argv[]){
     string str1, str2, result;
     getline(fin1, str1);
     getline(fin2, str2);
-    while (!fin1.fail() && !fin2.fail()){
+    while (!fin1.fail() && !fin2.fail()){           //读入最小长度
         result = result + str1 + " " + str2 + "\n";
         getline(fin1, str1);
         getline(fin2, str2);
     }
-    while (!fin1.fail()){
+    while (!fin1.fail()){                           //fin1可能未读完
         result = result + str1 + "\n";
         getline(fin1, str1);
     }
-    while(!fin2.fail()){
+    while(!fin2.fail()){                            //fin2可能未读完
         result = result + str2 + "\n";
         getline(fin2, str2);
     }

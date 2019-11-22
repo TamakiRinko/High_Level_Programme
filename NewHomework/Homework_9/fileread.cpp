@@ -10,11 +10,11 @@ int main(int argc, char const *argv[]){
     fstream file;
     file.open("test1.txt", ios::in);
     string str;
-    file >> str;
+    file >> str;                    //先读入字符串
     while(!file.fail()){
         cout << str << endl;
-        file >> str;
-    } 
+        file >> str;                //在读入后立刻判断是否结束
+    }
     file.close();
     file.open("test2.txt", ios::in);
     file >> str;
@@ -22,5 +22,6 @@ int main(int argc, char const *argv[]){
         cout << str << endl;
         file >> str;
     }
+    file.close();
     return 0;
 }
