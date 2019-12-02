@@ -17,3 +17,4 @@ CMakeLists.txt
 *.filters
 *.aps
 *.suo
+*.dll
