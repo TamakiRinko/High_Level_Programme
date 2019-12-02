@@ -126,7 +126,7 @@ void Control::mainLogic(){
 		zombieList[i]->start();
 	}
 	
-	for (auto it = zombieList.begin(); it != zombieList.end();) {				//…æ≥˝◊”µØ
+	for (auto it = zombieList.begin(); it != zombieList.end();) {				//…æ≥˝Ω© ¨
 		if ((*it)->getIsDead()) {
 			it = zombieList.erase(it);
 		}
@@ -143,8 +143,12 @@ void Control::mainLogic(){
 	}
 
 	paint.paintObject();
-	if (keyBoardMode != SHOPMODE)
+	if (keyBoardMode != SHOPMODE){
 		paint.paintShop();
+	}
+	else{
+		paint.paintSelectedShop(curShopPos->x, curShopPos->y);
+	}
 }
 
 
@@ -388,6 +392,7 @@ void Control::generateNaturalSun(){
 
 
 void Control::generateZombie() {
+	srand((unsigned)time(nullptr));
 	while (!gameOver) {
 		int wInterval = rand() % 4000 + 4000;
 		Sleep(wInterval);
@@ -397,29 +402,7 @@ void Control::generateZombie() {
 
 		int type = rand() % ZOMBIE_TYPE_NUM;
 		// int type = 3;
-
-		// Zombie* zombie = nullptr;
-		// switch (type) {
-		// case 0: {
-		// 	zombie = new NormalZombie(2, 20, *point, ORIGIN, 5, 100);
-		// 	break;
-		// }
-		// case 1: {
-		// 	zombie = new RoadBlockZombie(2, 20, *point, LITEPINK, 10, 200);
-		// 	break;
-		// }
-		// case 2: {
-		// 	zombie = new ClownZombie(3, 10, *point, GREEN, 20, 50);
-		// 	break;
-		// }
-		// case 3: {
-		// 	zombie = new PoleZombie(4, 20, *point, PINK, 20, 150);
-		// 	break;
-		// }
-		// default: break;
-		// }
 		Zombie* zombie = getNewInstance<Zombie>(ZombieType(type), point);
-		
 		
 		zombie->setArriveTime(arriveSequence[point->x][point->y]);								//…Ë÷√µΩ¥Ô¥Œ–Ú
 
