@@ -1,0 +1,5 @@
+<RCC>
+    <qresource prefix="/">
+        <file>Picture/斜体.png</file>
+    </qresource>
+</RCC>

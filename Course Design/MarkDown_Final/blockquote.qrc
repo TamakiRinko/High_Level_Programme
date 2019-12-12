@@ -1,0 +1,5 @@
+<RCC>
+    <qresource prefix="/">
+        <file>Picture/引用.png</file>
+    </qresource>
+</RCC>

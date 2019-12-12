@@ -1,7 +1,7 @@
 //
 // Created by TamakiRinko on 2019/9/23.
 //
-#include "Parser.h"
+#include "parser.h"
 
 Parser::Parser(const char *inFileName, const char* outFileName) {
 //    print(inFileName);
@@ -9,11 +9,13 @@ Parser::Parser(const char *inFileName, const char* outFileName) {
     fin.open(inFileName, ios::in);
     fout.open(outFileName, ios::out);
     if(!fin.is_open()){
-        print("Fin File open error!\n");
+//        print("Fin File open error!\n");
+        cout << "Fin File open error!\n";
         return;
     }
     if(!fout.is_open()){
-        print("Fout File open error!\n");
+//        print("Fout File open error!\n");
+        cout << "Fout File open error!\n";
         return;
     }
     if(Values::isOutCSS){
@@ -261,7 +263,7 @@ void Parser::handleHtml(string &curStr, regex *myRegex, string label) {
     curStr = regex_replace(curStr, Values::SRegex, R"(<strong>$2</strong>)");
     curStr = regex_replace(curStr, Values::ERegex, R"(<em>$2</em>)");
     curStr = regex_replace(curStr, Values::IMGRegex, R"(<img src="$2" alt="$1">)");
-    curStr = regex_replace(curStr, Values::LKSRegex, R"(<a href='$2'>$1</a>)");
+    curStr = regex_replace(curStr, Values::LKSRegex, R"(<a href='$2' target="_Blank">$1</a>)");
     curStr = regex_replace(curStr, Values::CODERegex, R"(<code>$1</code>)");
     curStr = regex_replace(curStr, Values::MTNRegex, R"(<s>$1</s>)");
 
@@ -324,7 +326,7 @@ void Parser::handleCSS(string &curStr, regex *myRegex, string label) {
     curStr = regex_replace(curStr, Values::SRegex, R"(<span style="font-weight:bold">$2</span>)");
     curStr = regex_replace(curStr, Values::ERegex, R"(<span style="font-style:italic">$2</span>)");
     curStr = regex_replace(curStr, Values::IMGRegex, R"(<img src="$2" alt="$1">)");
-    curStr = regex_replace(curStr, Values::LKSRegex, R"(<a href='$2'>$1</a>)");
+    curStr = regex_replace(curStr, Values::LKSRegex, R"(<a href='$2' target="_Blank">$1</a>)");
     curStr = regex_replace(curStr, Values::CODERegex,
             R"(<span style = "background-color:#ffeecc; color:rgba(0, 0, 0, 1); padding:1px 4px; border-radius:3px">$1</span>)");
     curStr = regex_replace(curStr, Values::MTNRegex, R"(<span style="text-decoration:line-through">$1</span>)");

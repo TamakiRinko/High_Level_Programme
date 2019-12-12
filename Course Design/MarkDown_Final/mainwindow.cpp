@@ -1,193 +1,42 @@
 #include "mainwindow.h"
+#include "ui_mainwindow.h"
 
-MainWindow::MainWindow(QWidget *parent)
-    : QMainWindow(parent){
+MainWindow::MainWindow(QWidget *parent): QMainWindow(parent), ui(new Ui::MainWindow){
+    ui->setupUi(this);
+    count = 0;
+
     fileName = "";
     thisFileName = "";
     tempThisFileName = "";
+    pdfThisFileName = "";
+    htmlFileName = "";
+    tempHtmlFileName = "";
     firstTime = true;
     isOutCSS = false;
     isInlineCSS = false;
     htmlWindow = nullptr;
 
-    //设定窗口大小
-    this->resize(1000, 600);
-    //设置字体大小
-    QFont font;
-    font.setPointSize(16);
-    mainText = new QTextEdit;
-    mainText->setFont(font);
-    //设定Tab键长度为4个空格
-    QFontMetrics metrics(mainText->font());
-    mainText->setTabStopWidth(4 * metrics.width(' '));
-    //设定编辑器位于窗口中间
-    setCentralWidget(mainText);
 
-//    if(isMDFile){                       //不是Markdown文件不配置菜单栏，快捷键等
-        setAction();
-//    }
+//    QPalette pl = ui->mainText->palette();
+//    pl.setBrush(QPalette::Base,QBrush(QColor(255,0,0,0)));
+//    ui->mainText->setPalette(pl);
+
+//    ui->mainText ->setStyleSheet("background-color:rgb(255, 250, 250)");
+    ui->mainText ->setStyleSheet("background-image:url(:/Picture/纸张.jpg)");
+
+
 
     htmlSyncTimer = new QTimer(this);
     connect(htmlSyncTimer,SIGNAL(timeout()),this,SLOT(onHtmlSyncTimerOut()));
     needToSync = false;
+    modifiedTimer = new QTimer(this);
+    connect(modifiedTimer,SIGNAL(timeout()),this,SLOT(onModifiedTimerOut()));
+    isModified = false;
+    modifiedTimer->start(100);
 }
 
 MainWindow::~MainWindow(){
-
-}
-
-void MainWindow::setAction(){
-    menubar = menuBar();//菜单栏
-    setMenuBar(menubar);//将菜单栏设置到窗口中
-    fileMenu = menubar->addMenu("文件");
-    operationMenu = menubar->addMenu("格式");
-
-    //新建文件
-    newFileAction = new QAction("新建");
-    newFileAction->setShortcut(QKeySequence::New);
-    connect(newFileAction, SIGNAL(triggered(bool)), this, SLOT(newFile()));
-
-    //打开文件
-    openFileAction = new QAction("打开");
-    openFileAction->setShortcut(QKeySequence::Open);
-    connect(openFileAction, SIGNAL(triggered(bool)), this, SLOT(openFile()));
-
-    //保存文件
-    saveFileAction = new QAction("保存");
-    saveFileAction->setShortcut(QKeySequence::Save);
-    connect(saveFileAction, SIGNAL(triggered(bool)), this, SLOT(saveFile()));
-
-    //复制
-    copyAction = new QAction("复制");
-    copyAction->setShortcut(QKeySequence::Copy);
-    connect(copyAction, SIGNAL(triggered(bool)), mainText, SLOT(copy()));
-
-    //粘贴
-    pasteAction = new QAction("粘贴");
-    pasteAction->setShortcut(QKeySequence::Paste);
-    connect(pasteAction, SIGNAL(triggered(bool)), mainText, SLOT(paste()));
-
-    //剪切
-    cutAction = new QAction("剪切");
-    cutAction->setShortcut(QKeySequence::Cut);
-    connect(cutAction, SIGNAL(triggered(bool)), mainText, SLOT(cut()));
-
-    //H1
-    h1Action = new QAction("一级标题");
-    h1Action->setShortcut(tr("Ctrl+1"));
-    connect(h1Action, SIGNAL(triggered(bool)), this, SLOT(h1()));
-
-    //H2
-    h2Action = new QAction("二级标题");
-    h2Action->setShortcut(tr("Ctrl+2"));
-    connect(h2Action, SIGNAL(triggered(bool)), this, SLOT(h2()));
-
-    //H3
-    h3Action = new QAction("三级标题");
-    h3Action->setShortcut(tr("Ctrl+3"));
-    connect(h3Action, SIGNAL(triggered(bool)), this, SLOT(h3()));
-
-    //H4
-    h4Action = new QAction("四级标题");
-    h4Action->setShortcut(tr("Ctrl+4"));
-    connect(h4Action, SIGNAL(triggered(bool)), this, SLOT(h4()));
-
-    //H5
-    h5Action = new QAction("五级标题");
-    h5Action->setShortcut(tr("Ctrl+5"));
-    connect(h5Action, SIGNAL(triggered(bool)), this, SLOT(h5()));
-
-    //H6
-    h6Action = new QAction("六级标题");
-    h6Action->setShortcut(tr("Ctrl+6"));
-    connect(h6Action, SIGNAL(triggered(bool)), this, SLOT(h6()));
-
-    //加粗
-    strongAction = new QAction("加粗");
-    strongAction->setShortcut(tr("Ctrl+B"));
-    connect(strongAction, SIGNAL(triggered(bool)), this, SLOT(strong()));
-
-    //斜体
-    italicAction = new QAction("斜体");
-    italicAction->setShortcut(tr("Ctrl+I"));
-    connect(italicAction, SIGNAL(triggered(bool)), this, SLOT(italic()));
-
-    //图片
-    imageAction = new QAction("图片");
-    imageAction->setShortcut(tr("Ctrl+Shift+I"));
-    connect(imageAction, SIGNAL(triggered(bool)), this, SLOT(image()));
-
-    //链接
-    linkAction = new QAction("链接");
-    linkAction->setShortcut(tr("Ctrl+K"));
-    connect(linkAction, SIGNAL(triggered(bool)), this, SLOT(link()));
-
-    //语句间代码
-    codeAction = new QAction("代码");
-    codeAction->setShortcut(tr("Ctrl+Shift+`"));
-    connect(codeAction, SIGNAL(triggered(bool)), this, SLOT(code()));
-
-    //删除线
-    mistakenAction = new QAction("删除线");
-    mistakenAction->setShortcut(tr("Alt+Shift+5"));
-    connect(mistakenAction, SIGNAL(triggered(bool)), this, SLOT(mistaken()));
-
-    //水平线
-    horizonAction = new QAction("水平线");
-    horizonAction->setShortcut(tr("Ctrl+L"));
-    connect(horizonAction, SIGNAL(triggered(bool)), this, SLOT(horizon()));
-
-    //引用
-    blockquoteAction = new QAction("引用");
-    blockquoteAction->setShortcut(tr("Ctrl+Shift+Q"));
-    connect(blockquoteAction, SIGNAL(triggered(bool)), this, SLOT(blockquote()));
-
-    fileMenu->addAction(newFileAction);
-    fileMenu->addAction(openFileAction);
-    fileMenu->addSeparator();
-    fileMenu->addAction(saveFileAction);
-    operationMenu->addAction(strongAction);
-    operationMenu->addAction(italicAction);
-    operationMenu->addAction(h1Action);
-    operationMenu->addAction(h2Action);
-    operationMenu->addAction(h3Action);
-    operationMenu->addAction(h4Action);
-    operationMenu->addAction(h5Action);
-    operationMenu->addAction(h6Action);
-    operationMenu->addAction(imageAction);
-    operationMenu->addAction(linkAction);
-    operationMenu->addAction(codeAction);
-    operationMenu->addAction(mistakenAction);
-    operationMenu->addAction(horizonAction);
-    operationMenu->addAction(blockquoteAction);
-}
-
-/**
- * @brief MainWindow::newOneFile
- * 新建一个文件
- */
-void MainWindow::newFile(){
-//    MainWindow* newWindow = new MainWindow(true);
-    MainWindow* newWindow = new MainWindow();
-    newWindow->show();
-}
-
-/**
- * @brief MainWindow::openOneFile
- * 打开一个文件
- */
-void MainWindow::openFile(){
-    fileName = QFileDialog::getOpenFileName(this);
-    if(fileName == "")  return;
-    if(mainText->document()->isEmpty() && thisFileName == ""){          //当前窗口为空，且还未加载过文件，直接放入
-       loadFile(fileName);
-       thisFileName = fileName;
-       saveFile();
-    }else{                                                              //当一个窗口非空，新建窗口
-        MainWindow* newWindow = new MainWindow();
-       newWindow->loadFile(fileName);
-       newWindow->show();
-    }
+    delete ui;
 }
 
 void MainWindow::loadFile(QString fileName){
@@ -199,25 +48,31 @@ void MainWindow::loadFile(QString fileName){
         return;
     }
     QTextStream qTextStream(&file);
-    mainText->document()->clear();
+    ui->mainText->document()->clear();
     while(!qTextStream.atEnd()){
         str = qTextStream.readLine();
-        mainText->append(str);
+        ui->mainText->append(str);
     }
     file.close();
-    mainText->document()->setModified(false);
+    ui->mainText->document()->setModified(true);
     setWindowTitle(fileName);
     thisFileName = fileName;                //设定本窗口打开的文件名
-//    cout << fileName.mid(thisFileName.size() - 2, 2).toStdString() << endl;
     htmlFileName = thisFileName.mid(0, thisFileName.size() - 2) + "html";       //设定相应的HTML文件名
+    tempThisFileName = (thisFileName.mid(0, thisFileName.size() - 3) + "_temp.md").toUtf8();
+    tempHtmlFileName = (thisFileName.mid(0, thisFileName.size() - 3) + "_temp.html").toUtf8();
     return;
 }
 
 bool MainWindow::saveFile(){
     if(thisFileName == ""){                 //选择文件名和地址
-        thisFileName = QFileDialog::getSaveFileName(this, tr("Save as"), "");
+        thisFileName = QFileDialog::getSaveFileName(this, tr("Save as"), "", "MD (*.md)");
+        if(thisFileName == ""){
+            return false;
+        }else {
+            isModified = true;
+        }
     }
-    if(thisFileName == "")  return false;   //叉掉了
+
     thisFileName = thisFileName.toUtf8();
     QFile file(thisFileName);
     if(!file.open(QFile::WriteOnly | QFile::Text)){
@@ -226,18 +81,67 @@ bool MainWindow::saveFile(){
         return false;
     }
     QTextStream qTextStream(&file);
-    qTextStream << mainText->toPlainText();
+    qTextStream << ui->mainText->toPlainText();
     file.close();
     setWindowTitle(thisFileName);
-    mainText->document()->setModified(false);
 
     handleFile();                           //处理文件
+
+    if(isModified){
+        parser(thisFileName, htmlFileName);
+    }
+    isModified = false;
 
     return true;
 }
 
+void MainWindow::handleFile(){
+    //保存后进行处理
+    if(firstTime){
+        htmlFileName = (thisFileName.mid(0, thisFileName.size() - 2) + "html").toUtf8();       //设定相应的HTML文件名
+        tempThisFileName = (thisFileName.mid(0, thisFileName.size() - 3) + "_temp.md").toUtf8();
+        tempHtmlFileName = (thisFileName.mid(0, thisFileName.size() - 3) + "_temp.html").toUtf8();
+        QMessageBox box(QMessageBox::Warning, "Style", "请选择输出样式：\n");
+        box.setStandardButtons(QMessageBox::Yes | QMessageBox::No |  QMessageBox::Apply | QMessageBox::Cancel);
+        box.setButtonText(QMessageBox::Yes, QString("内联CSS"));
+        box.setButtonText(QMessageBox::No, QString("外部CSS"));
+        box.setButtonText(QMessageBox::Apply, QString("无CSS"));
+        box.setButtonText(QMessageBox::Cancel, QString("取消"));
+        int button = box.exec();
+        if(button == QMessageBox::Yes){
+            Values::isInlineCSS = true;
+        }else if(button == QMessageBox::No){
+            Values::isOutCSS = true;
+        }else if(button == QMessageBox::Cancel){
+            return;
+        }
+        isOutCSS = Values::isOutCSS;
+        isInlineCSS = Values::isInlineCSS;
+        firstTime = false;
+        htmlWindow = new HTMLWindow();
+        htmlWindow->show();
+        htmlWindow->setWindowTitle(htmlFileName);
+        needToSync = true;
+        htmlSyncTimer->start(1000);
+    }
+    if(htmlWindow->isHidden()){                                     //窗口被关闭，重新打开
+        htmlWindow = new HTMLWindow();
+        htmlWindow->setWindowTitle(htmlFileName);
+        htmlWindow->show();
+        needToSync = true;
+    }
+    onHtmlSyncTimerOut();
+}
+
+void MainWindow::parser(QString inFileName, QString outFileName){
+    Values::isOutCSS = isOutCSS;
+    Values::isInlineCSS = isInlineCSS;
+    Parser parser(inFileName.toStdString().c_str() , outFileName.toStdString().c_str());
+    parser.Handle();
+}
+
 void MainWindow::closeEvent(QCloseEvent* event){
-    if (mainText->document()->isModified()){
+    if (isModified){
         int temp = QMessageBox::information(this, "Message", "文件未保存，是否保存？", QMessageBox::Yes | QMessageBox::No | QMessageBox::Cancel);
         if (temp == QMessageBox::Yes){              //保存
             if(saveFile()){
@@ -265,15 +169,74 @@ void MainWindow::closeEvent(QCloseEvent* event){
         }
     }
 
+    //删除临时文件
     if(tempThisFileName != ""){
         remove(tempThisFileName.toStdString().c_str());
+    }
+    if(tempHtmlFileName != ""){
+        remove(tempHtmlFileName.toStdString().c_str());
     }
 
 }
 
+void MainWindow::onHtmlSyncTimerOut(){
+    if(tempThisFileName == "")  return;
+    if(needToSync || ui->mainText->document()->isModified()){
+//        qDebug() << count;
+//        count++;
+        QFile file(tempThisFileName);
+        if(!file.open(QFile::WriteOnly | QFile::Text)){
+            QMessageBox::warning(this,tr("save file"),tr("cannot save file %1:\n %2")
+                                 .arg(thisFileName).arg(file.errorString()));
+            return;
+        }
+        QTextStream qTextStream(&file);
+        qTextStream << ui->mainText->toPlainText();
+        file.close();
 
-void MainWindow::strong(){
-    QTextCursor qTextCursor = mainText->textCursor();
+        parser(tempThisFileName, tempHtmlFileName);
+
+        htmlWindow->loadFile(tempHtmlFileName);
+        needToSync = false;
+        ui->mainText->document()->setModified(false);
+    }
+}
+
+void MainWindow::onModifiedTimerOut(){
+    if(ui->mainText->document()->isModified()){
+        isModified = true;
+    }
+}
+
+void MainWindow::on_newFileAction_triggered(){
+    MainWindow* newWindow = new MainWindow();
+    newWindow->show();
+}
+
+void MainWindow::on_openFileAction_triggered(){
+    fileName = QFileDialog::getOpenFileName(this);
+    if(fileName == "")  return;
+    if(ui->mainText->document()->isEmpty() && thisFileName == ""){          //当前窗口为空，且还未加载过文件，直接放入
+        loadFile(fileName);
+        handleFile();
+    }else{                                                              //当一个窗口非空，新建窗口
+        MainWindow* newWindow = new MainWindow();
+        newWindow->loadFile(fileName);
+        newWindow->handleFile();
+        newWindow->show();
+    }
+}
+
+void MainWindow::on_saveFileAction_triggered(){
+    saveFile();
+}
+
+void MainWindow::on_saveFileButton_clicked(){
+    on_saveFileAction_triggered();
+}
+
+void MainWindow::on_strongAction_triggered(){
+    QTextCursor qTextCursor = ui->mainText->textCursor();
     if(qTextCursor.hasSelection()){                         //光标选中
         int start = qTextCursor.selectionStart();
         int end = qTextCursor.selectionEnd();
@@ -289,8 +252,8 @@ void MainWindow::strong(){
     }
 }
 
-void MainWindow::italic(){
-    QTextCursor qTextCursor = mainText->textCursor();
+void MainWindow::on_italicAction_triggered(){
+    QTextCursor qTextCursor = ui->mainText->textCursor();
     if(qTextCursor.hasSelection()){
         int start = qTextCursor.selectionStart();
         int end = qTextCursor.selectionEnd();
@@ -306,8 +269,8 @@ void MainWindow::italic(){
     }
 }
 
-void MainWindow::h1(){
-    QTextCursor qTextCursor = mainText->textCursor();
+void MainWindow::on_h1Action_triggered(){
+    QTextCursor qTextCursor = ui->mainText->textCursor();
     qTextCursor.movePosition(QTextCursor::StartOfBlock);
     qTextCursor.movePosition(QTextCursor::EndOfBlock, QTextCursor::KeepAnchor);
     QString str = qTextCursor.selectedText();
@@ -317,8 +280,8 @@ void MainWindow::h1(){
     }
 }
 
-void MainWindow::h2(){
-    QTextCursor qTextCursor = mainText->textCursor();
+void MainWindow::on_h2Action_triggered(){
+    QTextCursor qTextCursor = ui->mainText->textCursor();
     qTextCursor.movePosition(QTextCursor::StartOfBlock);
     qTextCursor.movePosition(QTextCursor::EndOfBlock, QTextCursor::KeepAnchor);
     QString str = qTextCursor.selectedText();
@@ -328,8 +291,8 @@ void MainWindow::h2(){
     }
 }
 
-void MainWindow::h3(){
-    QTextCursor qTextCursor = mainText->textCursor();
+void MainWindow::on_h3Action_triggered(){
+    QTextCursor qTextCursor = ui->mainText->textCursor();
     qTextCursor.movePosition(QTextCursor::StartOfBlock);
     qTextCursor.movePosition(QTextCursor::EndOfBlock, QTextCursor::KeepAnchor);
     QString str = qTextCursor.selectedText();
@@ -339,8 +302,8 @@ void MainWindow::h3(){
     }
 }
 
-void MainWindow::h4(){
-    QTextCursor qTextCursor = mainText->textCursor();
+void MainWindow::on_h4Action_triggered(){
+    QTextCursor qTextCursor = ui->mainText->textCursor();
     qTextCursor.movePosition(QTextCursor::StartOfBlock);
     qTextCursor.movePosition(QTextCursor::EndOfBlock, QTextCursor::KeepAnchor);
     QString str = qTextCursor.selectedText();
@@ -350,8 +313,8 @@ void MainWindow::h4(){
     }
 }
 
-void MainWindow::h5(){
-    QTextCursor qTextCursor = mainText->textCursor();
+void MainWindow::on_h5Action_triggered(){
+    QTextCursor qTextCursor = ui->mainText->textCursor();
     qTextCursor.movePosition(QTextCursor::StartOfBlock);
     qTextCursor.movePosition(QTextCursor::EndOfBlock, QTextCursor::KeepAnchor);
     QString str = qTextCursor.selectedText();
@@ -361,8 +324,8 @@ void MainWindow::h5(){
     }
 }
 
-void MainWindow::h6(){
-    QTextCursor qTextCursor = mainText->textCursor();
+void MainWindow::on_h6Action_triggered(){
+    QTextCursor qTextCursor = ui->mainText->textCursor();
     qTextCursor.movePosition(QTextCursor::StartOfBlock);
     qTextCursor.movePosition(QTextCursor::EndOfBlock, QTextCursor::KeepAnchor);
     QString str = qTextCursor.selectedText();
@@ -372,26 +335,26 @@ void MainWindow::h6(){
     }
 }
 
-void MainWindow::image(){
-    QTextCursor qTextCursor = mainText->textCursor();
+void MainWindow::on_imageAction_triggered(){
+    QTextCursor qTextCursor = ui->mainText->textCursor();
     if(!qTextCursor.hasSelection()){
         qTextCursor.insertText("![]()");
         qTextCursor.movePosition(QTextCursor::Left, QTextCursor::MoveAnchor, 3);
-        mainText->setTextCursor(qTextCursor);                   //移动光标位置
+        ui->mainText->setTextCursor(qTextCursor);                   //移动光标位置
     }
 }
 
-void MainWindow::link(){
-    QTextCursor qTextCursor = mainText->textCursor();
+void MainWindow::on_linkAction_triggered(){
+    QTextCursor qTextCursor = ui->mainText->textCursor();
     if(!qTextCursor.hasSelection()){
         qTextCursor.insertText("[]()");
         qTextCursor.movePosition(QTextCursor::Left, QTextCursor::MoveAnchor, 3);
-        mainText->setTextCursor(qTextCursor);                   //移动光标位置
+        ui->mainText->setTextCursor(qTextCursor);                   //移动光标位置
     }
 }
 
-void MainWindow::code(){
-    QTextCursor qTextCursor = mainText->textCursor();
+void MainWindow::on_codeAction_triggered(){
+    QTextCursor qTextCursor = ui->mainText->textCursor();
     if(qTextCursor.hasSelection()){
         int start = qTextCursor.selectionStart();
         int end = qTextCursor.selectionEnd();
@@ -402,8 +365,8 @@ void MainWindow::code(){
     }
 }
 
-void MainWindow::mistaken(){
-    QTextCursor qTextCursor = mainText->textCursor();
+void MainWindow::on_mistakenAction_triggered(){
+    QTextCursor qTextCursor = ui->mainText->textCursor();
     if(qTextCursor.hasSelection()){                         //光标选中
         int start = qTextCursor.selectionStart();
         int end = qTextCursor.selectionEnd();
@@ -419,91 +382,73 @@ void MainWindow::mistaken(){
     }
 }
 
-void MainWindow::horizon(){
-    QTextCursor qTextCursor = mainText->textCursor();
+void MainWindow::on_horizonAction_triggered(){
+    QTextCursor qTextCursor = ui->mainText->textCursor();
     qTextCursor.movePosition(QTextCursor::StartOfBlock);
     qTextCursor.insertText("---\n");
 }
 
-
-void MainWindow::blockquote(){
-    QTextCursor qTextCursor = mainText->textCursor();
+void MainWindow::on_blockquoteAction_triggered(){
+    QTextCursor qTextCursor = ui->mainText->textCursor();
     qTextCursor.movePosition(QTextCursor::StartOfBlock);
     qTextCursor.insertText("> ");
 }
 
-void MainWindow::setReadOnly(){
-    mainText->setReadOnly(true);
+void MainWindow::on_strongButton_clicked(){
+    on_strongAction_triggered();
 }
 
-void MainWindow::setWritten(){
-    mainText->setReadOnly(false);
+void MainWindow::on_ItalicButton_clicked(){
+    on_italicAction_triggered();
 }
 
-void MainWindow::handleFile(){
-    //保存后进行处理
-    if(firstTime){
-        htmlFileName = (thisFileName.mid(0, thisFileName.size() - 2) + "html").toUtf8();       //设定相应的HTML文件名
-        tempThisFileName = (thisFileName.mid(0, thisFileName.size() - 3) + "_temp.md").toUtf8();
-        QMessageBox box(QMessageBox::Warning, "Style", "请选择输出样式：\n");
-        box.setStandardButtons(QMessageBox::Yes | QMessageBox::No |  QMessageBox::Apply | QMessageBox::Cancel);
-        box.setButtonText(QMessageBox::Yes, QString("内联CSS"));
-        box.setButtonText(QMessageBox::No, QString("外部CSS"));
-        box.setButtonText(QMessageBox::Apply, QString("无CSS"));
+void MainWindow::on_imageButton_clicked(){
+    on_imageAction_triggered();
+}
+
+void MainWindow::on_linkButton_clicked(){
+    on_linkAction_triggered();
+}
+
+void MainWindow::on_codeButton_clicked(){
+    on_codeAction_triggered();
+}
+
+void MainWindow::on_mistakenButton_clicked(){
+    on_mistakenAction_triggered();
+}
+
+void MainWindow::on_horizonButton_clicked(){
+    on_horizonAction_triggered();
+}
+
+void MainWindow::on_blockQuoteButton_clicked(){
+    on_blockquoteAction_triggered();
+}
+
+void MainWindow::on_convertToPDFAction_triggered(){
+//    qDebug() << htmlFileName;
+//    qDebug() << pdfThisFileName;
+//    qDebug() << thisFileName;
+    if(htmlFileName == "" || thisFileName == "")  return;
+    if(isModified){
+        QMessageBox box(QMessageBox::Warning, "Style", "尚未保存，是否保存：\n");
+        box.setStandardButtons(QMessageBox::Yes | QMessageBox::No | QMessageBox::Cancel);
+        box.setButtonText(QMessageBox::Yes, QString("是"));
+        box.setButtonText(QMessageBox::No, QString("否"));
         box.setButtonText(QMessageBox::Cancel, QString("取消"));
         int button = box.exec();
-        if(button == QMessageBox::Yes){
-            Values::isInlineCSS = true;
-        }else if(button == QMessageBox::No){
-            Values::isOutCSS = true;
-        }else if(button == QMessageBox::Cancel){
+        if(button == QMessageBox::Cancel){
             return;
+        }else if(button == QMessageBox::Yes){
+            saveFile();
         }
-        isOutCSS = Values::isOutCSS;
-        isInlineCSS = Values::isInlineCSS;
-        firstTime = false;
-        htmlWindow = new HTMLWindow();
-        htmlWindow->show();
-        htmlWindow->setWindowTitle(htmlFileName);
-        needToSync = true;
-        htmlSyncTimer->start(500);
     }
-    if(htmlWindow->isHidden()){                                     //窗口被关闭，重新打开
-        htmlWindow = new HTMLWindow();
-        htmlWindow->setWindowTitle(htmlFileName);
-        htmlWindow->show();
-        needToSync = true;
+    if(pdfThisFileName == ""){                 //选择文件名和地址
+        pdfThisFileName = QFileDialog::getSaveFileName(this, tr("Convert To PDF As"), (thisFileName.mid(0, thisFileName.size() - 2) + "pdf").toUtf8(), tr("PDF (*.pdf)"));
     }
-//    Values::isOutCSS = isOutCSS;
-//    Values::isInlineCSS = isInlineCSS;
-//    Parser parser(tempThisFileName.toStdString().c_str() , htmlFileName.toStdString().c_str());
-//    parser.Handle();
-
-//    htmlWindow->loadFile(htmlFileName);
-    onHtmlSyncTimerOut();
+    if(pdfThisFileName == "")  return;   //叉掉了
+    QProcess* process = new QProcess(this);
+    process->start("wkhtmltopdf", QStringList() << htmlFileName << pdfThisFileName);
+    process->waitForFinished();
 }
-
-void MainWindow::onHtmlSyncTimerOut(){
-    if(tempThisFileName == "")  return;
-    if(needToSync || mainText->document()->isModified()){
-        QFile file(tempThisFileName);
-        if(!file.open(QFile::WriteOnly | QFile::Text)){
-            QMessageBox::warning(this,tr("save file"),tr("cannot save file %1:\n %2")
-                                 .arg(thisFileName).arg(file.errorString()));
-            return;
-        }
-        QTextStream qTextStream(&file);
-        qTextStream << mainText->toPlainText();
-        file.close();
-
-
-        Values::isOutCSS = isOutCSS;
-        Values::isInlineCSS = isInlineCSS;
-        Parser parser(tempThisFileName.toStdString().c_str() , htmlFileName.toStdString().c_str());
-        parser.Handle();
-
-        htmlWindow->loadFile(htmlFileName);
-        needToSync = false;
-    }
-}
-

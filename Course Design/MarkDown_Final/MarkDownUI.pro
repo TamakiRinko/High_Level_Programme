@@ -1,14 +1,14 @@
 #-------------------------------------------------
 #
-# Project created by QtCreator 2019-10-10T17:15:56
+# Project created by QtCreator 2019-12-11T21:08:49
 #
 #-------------------------------------------------
 
-QT       += core gui  webenginewidgets
+QT       += core gui webenginewidgets
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
-TARGET = MarkDown
+TARGET = MarkDownUI
 TEMPLATE = app
 
 # The following define makes your compiler emit warnings if you use
@@ -27,22 +27,32 @@ CONFIG += c++11
 SOURCES += \
         main.cpp \
         mainwindow.cpp \
-    Parser.cpp \
-    Values.cpp \
+    parser.cpp \
+    values.cpp \
     htmlwindow.cpp
 
 HEADERS += \
         mainwindow.h \
-    Parser.h \
+    parser.h \
     htmlwindow.h
+
+FORMS += \
+        mainwindow.ui \
+    htmlwindow.ui
 
 # Default rules for deployment.
 qnx: target.path = /tmp/$${TARGET}/bin
 else: unix:!android: target.path = /opt/$${TARGET}/bin
 !isEmpty(target.path): INSTALLS += target
 
-DISTFILES += \
-    markdownCSS.css
-
-FORMS += \
-    htmlwindow.ui
+RESOURCES += \
+    savefile.qrc \
+    strong.qrc \
+    italic.qrc \
+    picture.qrc \
+    link.qrc \
+    code.qrc \
+    blockquote.qrc \
+    mistaken.qrc \
+    horizon.qrc \
+    background_1.qrc

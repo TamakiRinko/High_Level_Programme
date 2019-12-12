@@ -2,7 +2,7 @@
 // Created by TamakiRinko on 2019/9/25.
 //
 
-#include "Parser.h"
+#include "parser.h"
 bool Values::isInlineCSS = false;
 bool Values::isOutCSS = false;
 string Values::cssAddress = "/home/rinko/NJU_Study/HighLevelProgramme/MarkDown_QT/";

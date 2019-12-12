@@ -12,7 +12,7 @@
 #include <regex>
 using namespace std;
 
-#define print(x) cout << x << endl
+//#define print(x) cout << x << endl
 
 /**
  * 当前所在状态

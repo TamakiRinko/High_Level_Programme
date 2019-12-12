@@ -1,0 +1,5 @@
+<RCC>
+    <qresource prefix="/">
+        <file>Picture/水平线.png</file>
+    </qresource>
+</RCC>
