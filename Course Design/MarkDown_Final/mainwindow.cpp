@@ -529,7 +529,25 @@ void MainWindow::on_convertToPDFAction_triggered(){
 }
 
 void MainWindow::on_painterAction_triggered(){
-
+    QString backgroundFileName = "";
+    QMessageBox box(QMessageBox::Warning, "Style", "是否需要底图：\n");
+    box.setStandardButtons(QMessageBox::Yes | QMessageBox::No | QMessageBox::Cancel);
+    box.setButtonText(QMessageBox::Yes, QString("是"));
+    box.setButtonText(QMessageBox::No, QString("否"));
+    box.setButtonText(QMessageBox::Cancel, QString("取消"));
+    int button = box.exec();
+    if(button == QMessageBox::Cancel){
+        return;
+    }else if(button == QMessageBox::Yes){
+        backgroundFileName = QFileDialog::getOpenFileName(this, tr("Open"), "", tr("JPG (*.jpg)"));
+    }
+    if(backgroundFileName != ""){
+        PainterWindow* painterWindow = new PainterWindow(backgroundFileName);
+        painterWindow->show();
+    }else{
+        PainterWindow* painterWindow = new PainterWindow;
+        painterWindow->show();
+    }
 }
 
 void MainWindow::on_pushButton_clicked(){

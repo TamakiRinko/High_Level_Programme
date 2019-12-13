@@ -1,0 +1,15 @@
+<RCC>
+    <qresource prefix="/">
+        <file>Picture/保存.png</file>
+        <file>Picture/代码.png</file>
+        <file>Picture/画笔.png</file>
+        <file>Picture/加粗.png</file>
+        <file>Picture/链接.png</file>
+        <file>Picture/删除线.png</file>
+        <file>Picture/水平线.png</file>
+        <file>Picture/图片.png</file>
+        <file>Picture/斜体.png</file>
+        <file>Picture/新建.png</file>
+        <file>Picture/引用.png</file>
+    </qresource>
+</RCC>

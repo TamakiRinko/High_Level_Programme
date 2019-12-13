@@ -29,16 +29,37 @@ SOURCES += \
         mainwindow.cpp \
     parser.cpp \
     values.cpp \
-    htmlwindow.cpp
+    htmlwindow.cpp \
+    circle.cpp \
+    curve.cpp \
+    ellipse.cpp \
+    eraser.cpp \
+    graphics.cpp \
+    linesegment.cpp \
+    paint2dwidget.cpp \
+    polygon.cpp \
+    randomline.cpp \
+    painterwindow.cpp
 
 HEADERS += \
         mainwindow.h \
     parser.h \
-    htmlwindow.h
+    htmlwindow.h \
+    circle.h \
+    curve.h \
+    ellipse.h \
+    eraser.h \
+    graphics.h \
+    linesegment.h \
+    paint2dwidget.h \
+    polygon.h \
+    randomline.h \
+    painterwindow.h
 
 FORMS += \
         mainwindow.ui \
-    htmlwindow.ui
+    htmlwindow.ui \
+    painterwindow.ui
 
 # Default rules for deployment.
 qnx: target.path = /tmp/$${TARGET}/bin
@@ -46,14 +67,5 @@ else: unix:!android: target.path = /opt/$${TARGET}/bin
 !isEmpty(target.path): INSTALLS += target
 
 RESOURCES += \
-    savefile.qrc \
-    strong.qrc \
-    italic.qrc \
-    picture.qrc \
-    link.qrc \
-    code.qrc \
-    blockquote.qrc \
-    mistaken.qrc \
-    horizon.qrc \
-    background_1.qrc \
-    painter.qrc
+    operations.qrc \
+    backgrounds.qrc

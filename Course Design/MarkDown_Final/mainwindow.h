@@ -20,6 +20,7 @@
 #include <QTextCursor>
 #include "parser.h"
 #include "htmlwindow.h"
+#include "painterwindow.h"
 using namespace std;
 
 namespace Ui {
