@@ -24,8 +24,6 @@ MainWindow::MainWindow(QWidget *parent): QMainWindow(parent), ui(new Ui::MainWin
 //    ui->mainText ->setStyleSheet("background-color:rgb(255, 250, 250)");
     ui->mainText ->setStyleSheet("background-image:url(:/Picture/纸张.jpg)");
 
-
-
     htmlSyncTimer = new QTimer(this);
     connect(htmlSyncTimer,SIGNAL(timeout()),this,SLOT(onHtmlSyncTimerOut()));
     needToSync = false;
@@ -179,6 +177,44 @@ void MainWindow::closeEvent(QCloseEvent* event){
 
 }
 
+void MainWindow::selectPart(QTextCursor* qTextCursor, int start, int end){
+    qTextCursor->setPosition(start);
+    qTextCursor->setPosition(end, QTextCursor::KeepAnchor);
+    ui->mainText->setTextCursor(*qTextCursor);
+}
+
+void MainWindow::deleteContents(QTextCursor* qTextCursor, int pos, int num){
+    qTextCursor->setPosition(pos);
+    for(int i = 0; i < num; ++i){
+        qTextCursor->deleteChar();
+    }
+}
+
+/**
+ * @brief strongOritalic
+ * @param selectedContents
+ * @return
+ * 判断选中的是加粗还是斜体
+ */
+int MainWindow::strongOritalic(QString selectedContents){
+    if(selectedContents.size() >= 7){
+        if(selectedContents.mid(0, 3) == "***" && selectedContents.mid(selectedContents.size() - 3, 3) == "***"){
+            return 3;                       //加粗斜体
+        }
+    }
+    if(selectedContents.size() >= 5){
+        if(selectedContents.mid(0, 2) == "**" && selectedContents.mid(selectedContents.size() - 2, 2) == "**"){
+            return 2;                       //加粗
+        }
+    }
+    if(selectedContents.size() >= 3){
+        if(selectedContents.mid(0, 1) == "*" && selectedContents.mid(selectedContents.size() - 1, 1) == "*"){
+            return 1;                       //斜体
+        }
+    }
+    return 0;
+}
+
 void MainWindow::onHtmlSyncTimerOut(){
     if(tempThisFileName == "")  return;
     if(needToSync || ui->mainText->document()->isModified()){
@@ -240,16 +276,28 @@ void MainWindow::on_strongAction_triggered(){
     if(qTextCursor.hasSelection()){                         //光标选中
         int start = qTextCursor.selectionStart();
         int end = qTextCursor.selectionEnd();
-        qTextCursor.setPosition(start);
-        qTextCursor.insertText("**");
-        qTextCursor.setPosition(end + 2);
-        qTextCursor.insertText("**");
-    }else{                                                  //光标未选中
-        qTextCursor.movePosition(QTextCursor::StartOfLine);
-        qTextCursor.insertText("**");
-        qTextCursor.movePosition(QTextCursor::EndOfLine);
-        qTextCursor.insertText("**");
+
+        QString selectedContents = ui->mainText->textCursor().selectedText();
+        int type = strongOritalic(selectedContents);
+        if(type == 3 || type == 2){
+            deleteContents(&qTextCursor, end - 2, 2);
+            deleteContents(&qTextCursor, start, 2);
+        }else{
+            qTextCursor.setPosition(start);
+            qTextCursor.insertText("**");
+            qTextCursor.setPosition(end + 2);
+            qTextCursor.insertText("**");
+
+            selectPart(&qTextCursor, start, end + 4);
+        }
+
     }
+//    else{                                                  //光标未选中
+//        qTextCursor.movePosition(QTextCursor::StartOfLine);
+//        qTextCursor.insertText("**");
+//        qTextCursor.movePosition(QTextCursor::EndOfLine);
+//        qTextCursor.insertText("**");
+//    }
 }
 
 void MainWindow::on_italicAction_triggered(){
@@ -257,16 +305,27 @@ void MainWindow::on_italicAction_triggered(){
     if(qTextCursor.hasSelection()){
         int start = qTextCursor.selectionStart();
         int end = qTextCursor.selectionEnd();
-        qTextCursor.setPosition(start);
-        qTextCursor.insertText("*");
-        qTextCursor.setPosition(end + 1);
-        qTextCursor.insertText("*");
-    }else{
-        qTextCursor.movePosition(QTextCursor::StartOfLine);
-        qTextCursor.insertText("*");
-        qTextCursor.movePosition(QTextCursor::EndOfLine);
-        qTextCursor.insertText("*");
+
+        QString selectedContents = ui->mainText->textCursor().selectedText();
+        int type = strongOritalic(selectedContents);
+        if(type == 3 || type == 1){
+            deleteContents(&qTextCursor, end - 1, 1);
+            deleteContents(&qTextCursor, start, 1);
+        }else{
+            qTextCursor.setPosition(start);
+            qTextCursor.insertText("*");
+            qTextCursor.setPosition(end + 1);
+            qTextCursor.insertText("*");
+
+            selectPart(&qTextCursor, start, end + 2);
+        }
     }
+//    else{
+//        qTextCursor.movePosition(QTextCursor::StartOfLine);
+//        qTextCursor.insertText("*");
+//        qTextCursor.movePosition(QTextCursor::EndOfLine);
+//        qTextCursor.insertText("*");
+//    }
 }
 
 void MainWindow::on_h1Action_triggered(){
@@ -339,8 +398,10 @@ void MainWindow::on_imageAction_triggered(){
     QTextCursor qTextCursor = ui->mainText->textCursor();
     if(!qTextCursor.hasSelection()){
         qTextCursor.insertText("![]()");
-        qTextCursor.movePosition(QTextCursor::Left, QTextCursor::MoveAnchor, 3);
+        qTextCursor.movePosition(QTextCursor::Left, QTextCursor::MoveAnchor, 1);
         ui->mainText->setTextCursor(qTextCursor);                   //移动光标位置
+        QString imageName = QFileDialog::getOpenFileName(this, tr("打开"), "/home/rinko/", tr("Image Files(*.jpg *.png)"));
+        qTextCursor.insertText(imageName);
     }
 }
 
@@ -362,6 +423,10 @@ void MainWindow::on_codeAction_triggered(){
         qTextCursor.insertText("`");
         qTextCursor.setPosition(end + 1);
         qTextCursor.insertText("`");
+
+        qTextCursor.setPosition(start);
+        qTextCursor.setPosition(end + 2, QTextCursor::KeepAnchor);
+        ui->mainText->setTextCursor(qTextCursor);
     }
 }
 
@@ -370,16 +435,26 @@ void MainWindow::on_mistakenAction_triggered(){
     if(qTextCursor.hasSelection()){                         //光标选中
         int start = qTextCursor.selectionStart();
         int end = qTextCursor.selectionEnd();
-        qTextCursor.setPosition(start);
-        qTextCursor.insertText("~~");
-        qTextCursor.setPosition(end + 2);
-        qTextCursor.insertText("~~");
-    }else{                                                  //光标未选中
-        qTextCursor.movePosition(QTextCursor::StartOfLine);
-        qTextCursor.insertText("~~");
-        qTextCursor.movePosition(QTextCursor::EndOfLine);
-        qTextCursor.insertText("~~");
+
+        QString selectedContents = ui->mainText->textCursor().selectedText();
+        if(selectedContents.mid(0, 2) == "~~" && selectedContents.mid(selectedContents.size() - 2, 2) == "~~"){
+            deleteContents(&qTextCursor, end - 2, 2);
+            deleteContents(&qTextCursor, start, 2);
+        }else{
+            qTextCursor.setPosition(start);
+            qTextCursor.insertText("~~");
+            qTextCursor.setPosition(end + 2);
+            qTextCursor.insertText("~~");
+
+            selectPart(&qTextCursor, start, end + 4);
+        }
     }
+//    else{                                                  //光标未选中
+//        qTextCursor.movePosition(QTextCursor::StartOfLine);
+//        qTextCursor.insertText("~~");
+//        qTextCursor.movePosition(QTextCursor::EndOfLine);
+//        qTextCursor.insertText("~~");
+//    }
 }
 
 void MainWindow::on_horizonAction_triggered(){
@@ -451,4 +526,12 @@ void MainWindow::on_convertToPDFAction_triggered(){
     QProcess* process = new QProcess(this);
     process->start("wkhtmltopdf", QStringList() << htmlFileName << pdfThisFileName);
     process->waitForFinished();
+}
+
+void MainWindow::on_painterAction_triggered(){
+
+}
+
+void MainWindow::on_pushButton_clicked(){
+    on_painterAction_triggered();
 }

@@ -17,6 +17,7 @@
 #include <cstdio>
 #include <QPalette>
 #include <QProcess>
+#include <QTextCursor>
 #include "parser.h"
 #include "htmlwindow.h"
 using namespace std;
@@ -61,6 +62,10 @@ private:
     void closeEvent(QCloseEvent* event);         //关闭时的操作
 
 
+    void selectPart(QTextCursor* qTextCursor,  int start, int end);
+    void deleteContents(QTextCursor* qTextCursor, int pos, int num);
+    int strongOritalic(QString selectedContents);
+
 private slots:
     void onHtmlSyncTimerOut();
     void onModifiedTimerOut();
@@ -91,6 +96,8 @@ private slots:
     void on_horizonButton_clicked();
     void on_blockQuoteButton_clicked();
     void on_convertToPDFAction_triggered();
+    void on_painterAction_triggered();
+    void on_pushButton_clicked();
 };
 
 #endif // MAINWINDOW_H

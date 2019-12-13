@@ -122,6 +122,17 @@
         </property>
        </widget>
       </item>
+      <item>
+       <widget class="QPushButton" name="pushButton">
+        <property name="text">
+         <string/>
+        </property>
+        <property name="icon">
+         <iconset resource="painter.qrc">
+          <normaloff>:/Picture/画笔.png</normaloff>:/Picture/画笔.png</iconset>
+        </property>
+       </widget>
+      </item>
      </layout>
     </item>
     <item>
@@ -182,6 +193,7 @@
     <addaction name="mistakenAction"/>
     <addaction name="horizonAction"/>
     <addaction name="blockquoteAction"/>
+    <addaction name="painterAction"/>
    </widget>
    <addaction name="menu"/>
    <addaction name="menu_2"/>
@@ -324,18 +336,24 @@
     <string>PDF</string>
    </property>
   </action>
+  <action name="painterAction">
+   <property name="text">
+    <string>画板</string>
+   </property>
+  </action>
  </widget>
  <layoutdefault spacing="6" margin="11"/>
  <resources>
-  <include location="code.qrc"/>
-  <include location="blockquote.qrc"/>
   <include location="link.qrc"/>
+  <include location="horizon.qrc"/>
   <include location="strong.qrc"/>
   <include location="picture.qrc"/>
+  <include location="code.qrc"/>
   <include location="savefile.qrc"/>
-  <include location="horizon.qrc"/>
   <include location="italic.qrc"/>
   <include location="mistaken.qrc"/>
+  <include location="painter.qrc"/>
+  <include location="blockquote.qrc"/>
  </resources>
  <connections/>
 </ui>

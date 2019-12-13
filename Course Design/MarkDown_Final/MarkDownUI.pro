@@ -55,4 +55,5 @@ RESOURCES += \
     blockquote.qrc \
     mistaken.qrc \
     horizon.qrc \
-    background_1.qrc
+    background_1.qrc \
+    painter.qrc
