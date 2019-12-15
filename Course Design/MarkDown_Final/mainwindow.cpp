@@ -3,7 +3,6 @@
 
 MainWindow::MainWindow(QWidget *parent): QMainWindow(parent), ui(new Ui::MainWindow){
     ui->setupUi(this);
-    count = 0;
 
     fileName = "";
     thisFileName = "";
@@ -15,7 +14,8 @@ MainWindow::MainWindow(QWidget *parent): QMainWindow(parent), ui(new Ui::MainWin
     isOutCSS = false;
     isInlineCSS = false;
     htmlWindow = nullptr;
-
+    painterWindow = nullptr;
+    curScreenShot = nullptr;
 
 //    QPalette pl = ui->mainText->palette();
 //    pl.setBrush(QPalette::Base,QBrush(QColor(255,0,0,0)));
@@ -24,6 +24,7 @@ MainWindow::MainWindow(QWidget *parent): QMainWindow(parent), ui(new Ui::MainWin
 //    ui->mainText ->setStyleSheet("background-color:rgb(255, 250, 250)");
     ui->mainText ->setStyleSheet("background-image:url(:/Picture/纸张.jpg)");
 
+    //触发器
     htmlSyncTimer = new QTimer(this);
     connect(htmlSyncTimer,SIGNAL(timeout()),this,SLOT(onHtmlSyncTimerOut()));
     needToSync = false;
@@ -35,6 +36,10 @@ MainWindow::MainWindow(QWidget *parent): QMainWindow(parent), ui(new Ui::MainWin
 
 MainWindow::~MainWindow(){
     delete ui;
+}
+
+void MainWindow::screenShot(){
+    on_screenshotAction_triggered();
 }
 
 void MainWindow::loadFile(QString fileName){
@@ -174,7 +179,6 @@ void MainWindow::closeEvent(QCloseEvent* event){
     if(tempHtmlFileName != ""){
         remove(tempHtmlFileName.toStdString().c_str());
     }
-
 }
 
 void MainWindow::selectPart(QTextCursor* qTextCursor, int start, int end){
@@ -213,6 +217,29 @@ int MainWindow::strongOritalic(QString selectedContents){
         }
     }
     return 0;
+}
+
+void MainWindow::painterCloseEvent(){
+    painterWindow = nullptr;
+    if(painterName != ""){
+        QMessageBox box(QMessageBox::Warning, "Operation", "选择操作：\n");
+        box.setStandardButtons(QMessageBox::Yes | QMessageBox::No |  QMessageBox::Cancel);
+        box.setButtonText(QMessageBox::Yes, QString("插入到当前位置"));
+        box.setButtonText(QMessageBox::No, QString("继续编辑"));
+        box.setButtonText(QMessageBox::Cancel, QString("结束"));
+        int button = box.exec();
+        if(button == QMessageBox::Yes){
+            QTextCursor qTextCursor = ui->mainText->textCursor();
+            qTextCursor.insertText("![](" + painterName + ")");
+        }else if(button == QMessageBox::No){
+            backgroundFileName = painterName;
+            painterWindow = new PainterWindow(&painterName, backgroundFileName);
+            painterWindow->show();
+            connect(painterWindow, &PainterWindow::closeSignal, this, &MainWindow::painterCloseEvent);
+        }else if(button == QMessageBox::Cancel){
+            return;
+        }
+    }
 }
 
 void MainWindow::onHtmlSyncTimerOut(){
@@ -529,7 +556,9 @@ void MainWindow::on_convertToPDFAction_triggered(){
 }
 
 void MainWindow::on_painterAction_triggered(){
-    QString backgroundFileName = "";
+    if(painterWindow != nullptr)    return;
+    backgroundFileName = "";
+    painterName = "";
     QMessageBox box(QMessageBox::Warning, "Style", "是否需要底图：\n");
     box.setStandardButtons(QMessageBox::Yes | QMessageBox::No | QMessageBox::Cancel);
     box.setButtonText(QMessageBox::Yes, QString("是"));
@@ -542,14 +571,47 @@ void MainWindow::on_painterAction_triggered(){
         backgroundFileName = QFileDialog::getOpenFileName(this, tr("Open"), "", tr("JPG (*.jpg)"));
     }
     if(backgroundFileName != ""){
-        PainterWindow* painterWindow = new PainterWindow(backgroundFileName);
+        painterWindow = new PainterWindow(&painterName, backgroundFileName);
         painterWindow->show();
     }else{
-        PainterWindow* painterWindow = new PainterWindow;
+        painterWindow = new PainterWindow(&painterName);
         painterWindow->show();
+    }
+    connect(painterWindow, &PainterWindow::closeSignal, this, &MainWindow::painterCloseEvent);
+}
+
+void MainWindow::on_painterButton_clicked(){
+    on_painterAction_triggered();
+}
+
+void MainWindow::on_screenshotAction_triggered(){
+    if(curScreenShot == nullptr){
+        screenShotName = "";
+        curScreenShot = new ScreenShot(&screenShotName);
+        connect(curScreenShot, &ScreenShot::closeSignal, this, [&](){
+            curScreenShot = nullptr;
+            if(screenShotName != ""){
+                QMessageBox box(QMessageBox::Warning, "Operation", "选择操作：\n");
+                box.setStandardButtons(QMessageBox::Yes | QMessageBox::No |  QMessageBox::Cancel);
+                box.setButtonText(QMessageBox::Yes, QString("插入到当前位置"));
+                box.setButtonText(QMessageBox::No, QString("编辑"));
+                box.setButtonText(QMessageBox::Cancel, QString("结束"));
+                int button = box.exec();
+                if(button == QMessageBox::Yes){
+                    QTextCursor qTextCursor = ui->mainText->textCursor();
+                    qTextCursor.insertText("![](" + screenShotName + ")");
+                }else if(button == QMessageBox::No){
+                    painterWindow = new PainterWindow(&painterName, screenShotName);
+                    painterWindow->show();
+                    connect(painterWindow, &PainterWindow::closeSignal, this, &MainWindow::painterCloseEvent);
+                }else if(button == QMessageBox::Cancel){
+                    return;
+                }
+            }
+        });
     }
 }
 
-void MainWindow::on_pushButton_clicked(){
-    on_painterAction_triggered();
+void MainWindow::on_screenshotButton_clicked(){
+    on_screenshotAction_triggered();
 }

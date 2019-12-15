@@ -11,5 +11,6 @@
         <file>Picture/斜体.png</file>
         <file>Picture/新建.png</file>
         <file>Picture/引用.png</file>
+        <file>Picture/截屏.png</file>
     </qresource>
 </RCC>

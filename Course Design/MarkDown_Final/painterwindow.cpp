@@ -1,21 +1,21 @@
 #include "painterwindow.h"
 #include "ui_painterwindow.h"
 
-PainterWindow::PainterWindow(QString backgroundFileName, QWidget *parent) :
-    QMainWindow(parent),
-    ui(new Ui::PainterWindow){
+PainterWindow::PainterWindow(QString* painterName, QString backgroundFileName, QWidget *parent):
+    QMainWindow(parent), ui(new Ui::PainterWindow){
     ui->setupUi(this);
     resize(800, 600);
     setWindowTitle("Painter");
 
-    fileName = nullptr;
+    fileName = painterName;
 
     setAction();
 
     if(backgroundFileName != ""){
+        *fileName = backgroundFileName;
         QImage image(backgroundFileName);
-        qDebug() << image.size();
-        resize(image.size());
+//        qDebug() << image.size();
+        resize(image.size().width(), image.size().height() + 105);           //上下边框共97像素
     }
 
     paint2DWidget = new Paint2DWidget(backgroundFileName);
@@ -28,10 +28,6 @@ PainterWindow::PainterWindow(QString backgroundFileName, QWidget *parent) :
 void PainterWindow::setAction(){
     //文件操作
     fileMenu = ui->menuBar->addMenu("File");
-    //新建窗口
-    newWindowAction = new QAction("New");
-    newWindowAction->setShortcut(QKeySequence::New);
-    connect(newWindowAction, SIGNAL(triggered(bool)), this, SLOT(newWindow()));
     //保存文件
     saveFileAction = new QAction("Save");
     saveFileAction->setShortcut(QKeySequence::Save);
@@ -44,7 +40,6 @@ void PainterWindow::setAction(){
     pasteAction = new QAction("Paste");
     pasteAction->setShortcut(QKeySequence::Paste);
     connect(pasteAction, SIGNAL(triggered(bool)), this, SLOT(graphicsPaste_triggered()));
-    fileMenu->addAction(newWindowAction);
     fileMenu->addAction(saveFileAction);
     fileMenu->addAction(copyAction);
     fileMenu->addAction(pasteAction);
@@ -98,22 +93,13 @@ PainterWindow::~PainterWindow(){
     delete ui;
 }
 
-/**
- * @brief PainterWindow::newOneFile
- * 新建一个窗口
- */
-void PainterWindow::newWindow(){
-    PainterWindow* newWindow = new PainterWindow;
-    newWindow->show();
-}
-
 bool PainterWindow::saveFile(){
-    if(fileName == nullptr){
-        fileName = QFileDialog::getSaveFileName(this, tr("Save File"), "newPic", tr("Image (*.jpg)"));
+    if(*fileName == ""){
+        *fileName = QFileDialog::getSaveFileName(this, tr("Save File"), "newPic", tr("Image (*.jpg)"));
     }
-    if(fileName == "")  return false;
-    fileName = fileName.toUtf8();
-    paint2DWidget->saveTo(fileName);
+    if(*fileName == "")  return false;
+    *fileName = (*fileName).toUtf8();
+    paint2DWidget->saveTo(*fileName);
     return true;
 }
 
@@ -136,6 +122,7 @@ void PainterWindow::closeEvent(QCloseEvent* event){
     else{
         event->accept();
     }
+    emit closeSignal();
 }
 
 /**

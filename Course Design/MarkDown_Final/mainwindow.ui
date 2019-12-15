@@ -29,7 +29,7 @@
          <string/>
         </property>
         <property name="icon">
-         <iconset resource="savefile.qrc">
+         <iconset resource="operations.qrc">
           <normaloff>:/Picture/保存.png</normaloff>:/Picture/保存.png</iconset>
         </property>
        </widget>
@@ -40,7 +40,7 @@
          <string/>
         </property>
         <property name="icon">
-         <iconset resource="strong.qrc">
+         <iconset resource="operations.qrc">
           <normaloff>:/Picture/加粗.png</normaloff>:/Picture/加粗.png</iconset>
         </property>
        </widget>
@@ -51,7 +51,7 @@
          <string/>
         </property>
         <property name="icon">
-         <iconset resource="italic.qrc">
+         <iconset resource="operations.qrc">
           <normaloff>:/Picture/斜体.png</normaloff>:/Picture/斜体.png</iconset>
         </property>
        </widget>
@@ -62,7 +62,7 @@
          <string/>
         </property>
         <property name="icon">
-         <iconset resource="picture.qrc">
+         <iconset resource="operations.qrc">
           <normaloff>:/Picture/图片.png</normaloff>:/Picture/图片.png</iconset>
         </property>
        </widget>
@@ -73,7 +73,7 @@
          <string/>
         </property>
         <property name="icon">
-         <iconset resource="link.qrc">
+         <iconset resource="operations.qrc">
           <normaloff>:/Picture/链接.png</normaloff>:/Picture/链接.png</iconset>
         </property>
        </widget>
@@ -84,7 +84,7 @@
          <string/>
         </property>
         <property name="icon">
-         <iconset resource="code.qrc">
+         <iconset resource="operations.qrc">
           <normaloff>:/Picture/代码.png</normaloff>:/Picture/代码.png</iconset>
         </property>
        </widget>
@@ -95,7 +95,7 @@
          <string/>
         </property>
         <property name="icon">
-         <iconset resource="mistaken.qrc">
+         <iconset resource="operations.qrc">
           <normaloff>:/Picture/删除线.png</normaloff>:/Picture/删除线.png</iconset>
         </property>
        </widget>
@@ -106,7 +106,7 @@
          <string/>
         </property>
         <property name="icon">
-         <iconset resource="horizon.qrc">
+         <iconset resource="operations.qrc">
           <normaloff>:/Picture/水平线.png</normaloff>:/Picture/水平线.png</iconset>
         </property>
        </widget>
@@ -117,19 +117,30 @@
          <string/>
         </property>
         <property name="icon">
-         <iconset resource="blockquote.qrc">
+         <iconset resource="operations.qrc">
           <normaloff>:/Picture/引用.png</normaloff>:/Picture/引用.png</iconset>
         </property>
        </widget>
       </item>
       <item>
-       <widget class="QPushButton" name="pushButton">
+       <widget class="QPushButton" name="painterButton">
         <property name="text">
          <string/>
         </property>
         <property name="icon">
-         <iconset resource="painter.qrc">
+         <iconset resource="operations.qrc">
           <normaloff>:/Picture/画笔.png</normaloff>:/Picture/画笔.png</iconset>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QPushButton" name="screenshotButton">
+        <property name="text">
+         <string/>
+        </property>
+        <property name="icon">
+         <iconset resource="operations.qrc">
+          <normaloff>:/Picture/截屏.png</normaloff>:/Picture/截屏.png</iconset>
         </property>
        </widget>
       </item>
@@ -193,7 +204,9 @@
     <addaction name="mistakenAction"/>
     <addaction name="horizonAction"/>
     <addaction name="blockquoteAction"/>
+    <addaction name="separator"/>
     <addaction name="painterAction"/>
+    <addaction name="screenshotAction"/>
    </widget>
    <addaction name="menu"/>
    <addaction name="menu_2"/>
@@ -341,19 +354,15 @@
     <string>画板</string>
    </property>
   </action>
+  <action name="screenshotAction">
+   <property name="text">
+    <string>截屏</string>
+   </property>
+  </action>
  </widget>
  <layoutdefault spacing="6" margin="11"/>
  <resources>
-  <include location="link.qrc"/>
-  <include location="horizon.qrc"/>
-  <include location="strong.qrc"/>
-  <include location="picture.qrc"/>
-  <include location="code.qrc"/>
-  <include location="savefile.qrc"/>
-  <include location="italic.qrc"/>
-  <include location="mistaken.qrc"/>
-  <include location="painter.qrc"/>
-  <include location="blockquote.qrc"/>
+  <include location="operations.qrc"/>
  </resources>
  <connections/>
 </ui>

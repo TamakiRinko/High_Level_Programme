@@ -20,7 +20,7 @@ class PainterWindow : public QMainWindow
     Q_OBJECT
 
 public:
-    explicit PainterWindow(QString backgroundFileName = "", QWidget *parent = nullptr);
+    explicit PainterWindow(QString* painterName, QString backgroundFileName = "", QWidget *parent = nullptr);
     ~PainterWindow();
 
 private:
@@ -29,7 +29,7 @@ private:
 
     QMenu* fileMenu;                    //文件菜单
     QMenu* transformMenu;               //操作菜单
-    QAction* newWindowAction;           //新建窗口
+//    QAction* newWindowAction;           //新建窗口
     QAction* saveFileAction;            //保存文件
     QAction* copyAction;                //复制
     QAction* pasteAction;               //粘贴
@@ -46,7 +46,7 @@ private:
     QAction* scaleAction;               //缩放
     QAction* cropAction;                //裁剪
 
-    QString fileName;                   //保存的文件名
+    QString* fileName;                   //保存的文件名
 
     void setAction();                   //设置Action
 
@@ -59,7 +59,6 @@ protected:
 private slots:
 
     //Action
-    void newWindow();
     bool saveFile();
 
     void on_actionDDA_triggered();
@@ -94,6 +93,9 @@ private slots:
     void graphicsPaste_triggered();
     void on_ResetButton_clicked();
     void on_KSpinBox_valueChanged(int arg1);
+
+signals:
+    void closeSignal();
 };
 
 #endif // PAINTERWINDOW_H

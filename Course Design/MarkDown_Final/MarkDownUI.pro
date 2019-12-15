@@ -6,6 +6,8 @@
 
 QT       += core gui webenginewidgets
 
+include(./QHotkey-master/qhotkey.pri)
+
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
 TARGET = MarkDownUI
@@ -39,7 +41,9 @@ SOURCES += \
     paint2dwidget.cpp \
     polygon.cpp \
     randomline.cpp \
-    painterwindow.cpp
+    painterwindow.cpp \
+    sizeinfo.cpp \
+    screenshot.cpp
 
 HEADERS += \
         mainwindow.h \
@@ -54,12 +58,15 @@ HEADERS += \
     paint2dwidget.h \
     polygon.h \
     randomline.h \
-    painterwindow.h
+    painterwindow.h \
+    screenshot.h \
+    sizeinfo.h
 
 FORMS += \
         mainwindow.ui \
     htmlwindow.ui \
-    painterwindow.ui
+    painterwindow.ui \
+    sizeinfo.ui
 
 # Default rules for deployment.
 qnx: target.path = /tmp/$${TARGET}/bin

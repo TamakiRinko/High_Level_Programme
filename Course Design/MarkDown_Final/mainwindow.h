@@ -21,6 +21,7 @@
 #include "parser.h"
 #include "htmlwindow.h"
 #include "painterwindow.h"
+#include "screenshot.h"
 using namespace std;
 
 namespace Ui {
@@ -33,13 +34,13 @@ class MainWindow : public QMainWindow
 
 public:
     explicit MainWindow(QWidget *parent = nullptr);
+    void screenShot();                                          //截屏快捷键
     ~MainWindow();
 
 private:
-    int count;
     Ui::MainWindow *ui;
 
-    HTMLWindow* htmlWindow;
+    HTMLWindow* htmlWindow;         //html显示窗口
     QString htmlFileName;           //html文件的名称
     QString tempHtmlFileName;       //html临时文件的名称
     bool firstTime;                 //是否为第一次保存
@@ -55,6 +56,13 @@ private:
     bool needToSync;                //需要同步
     QTimer* modifiedTimer;          //检测修改的时钟
     bool isModified;                //内容有修改
+
+    PainterWindow* painterWindow;   //绘图窗口
+    QString painterName;            //绘图图片名称
+    QString backgroundFileName;     //绘图背景图片名称
+
+    ScreenShot* curScreenShot;      //截屏
+    QString screenShotName;         //截屏图片名称
 
     void loadFile(QString fileName);//加载一个文件
     bool saveFile();                //保存文件
@@ -98,7 +106,11 @@ private slots:
     void on_blockQuoteButton_clicked();
     void on_convertToPDFAction_triggered();
     void on_painterAction_triggered();
-    void on_pushButton_clicked();
+    void on_painterButton_clicked();
+    void on_screenshotAction_triggered();
+    void on_screenshotButton_clicked();
+
+    void painterCloseEvent();       //绘图器关闭后的操作
 };
 
 #endif // MAINWINDOW_H
