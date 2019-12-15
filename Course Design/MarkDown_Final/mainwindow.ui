@@ -149,7 +149,7 @@
     <item>
      <layout class="QVBoxLayout" name="verticalLayout_2">
       <item>
-       <widget class="QTextEdit" name="mainText">
+       <widget class="TextEdit" name="mainText">
         <property name="font">
          <font>
           <pointsize>20</pointsize>
@@ -361,6 +361,13 @@
   </action>
  </widget>
  <layoutdefault spacing="6" margin="11"/>
+ <customwidgets>
+  <customwidget>
+   <class>TextEdit</class>
+   <extends>QTextEdit</extends>
+   <header location="global">textedit.h</header>
+  </customwidget>
+ </customwidgets>
  <resources>
   <include location="operations.qrc"/>
  </resources>

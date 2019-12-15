@@ -357,6 +357,12 @@ void MainWindow::on_italicAction_triggered(){
 
 void MainWindow::on_h1Action_triggered(){
     QTextCursor qTextCursor = ui->mainText->textCursor();
+
+    QStringList textList = ui->mainText->toPlainText().split("\n");
+//    ui->mainText->document()->
+
+
+
     qTextCursor.movePosition(QTextCursor::StartOfBlock);
     qTextCursor.movePosition(QTextCursor::EndOfBlock, QTextCursor::KeepAnchor);
     QString str = qTextCursor.selectedText();
@@ -443,17 +449,22 @@ void MainWindow::on_linkAction_triggered(){
 
 void MainWindow::on_codeAction_triggered(){
     QTextCursor qTextCursor = ui->mainText->textCursor();
-    if(qTextCursor.hasSelection()){
+    if(qTextCursor.hasSelection()){        
         int start = qTextCursor.selectionStart();
         int end = qTextCursor.selectionEnd();
-        qTextCursor.setPosition(start);
-        qTextCursor.insertText("`");
-        qTextCursor.setPosition(end + 1);
-        qTextCursor.insertText("`");
 
-        qTextCursor.setPosition(start);
-        qTextCursor.setPosition(end + 2, QTextCursor::KeepAnchor);
-        ui->mainText->setTextCursor(qTextCursor);
+        QString selectedContents = ui->mainText->textCursor().selectedText();
+        if(selectedContents[0] == '`' && selectedContents[selectedContents.size() - 1] == '`'){
+            deleteContents(&qTextCursor, end - 1, 1);
+            deleteContents(&qTextCursor, start, 1);
+        }else{
+            qTextCursor.setPosition(start);
+            qTextCursor.insertText("`");
+            qTextCursor.setPosition(end + 1);
+            qTextCursor.insertText("`");
+
+            selectPart(&qTextCursor, start, end + 2);
+        }
     }
 }
 

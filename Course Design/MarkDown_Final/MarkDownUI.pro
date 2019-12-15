@@ -43,7 +43,8 @@ SOURCES += \
     randomline.cpp \
     painterwindow.cpp \
     sizeinfo.cpp \
-    screenshot.cpp
+    screenshot.cpp \
+    textedit.cpp
 
 HEADERS += \
         mainwindow.h \
@@ -60,7 +61,8 @@ HEADERS += \
     randomline.h \
     painterwindow.h \
     screenshot.h \
-    sizeinfo.h
+    sizeinfo.h \
+    textedit.h
 
 FORMS += \
         mainwindow.ui \
