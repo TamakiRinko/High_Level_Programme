@@ -23,6 +23,10 @@ MainWindow::MainWindow(QWidget *parent): QMainWindow(parent), ui(new Ui::MainWin
 
 //    ui->mainText ->setStyleSheet("background-color:rgb(255, 250, 250)");
     ui->mainText ->setStyleSheet("background-image:url(:/Picture/纸张.jpg)");
+//    ui->mainText->setFocusPolicy(Qt::ClickFocus);
+//    ui->linkButton->setFocusPolicy(Qt::ClickFocus);
+//    QWidget::setTabOrder(ui->linkButton, ui->mainText);
+
 
     //触发器
     htmlSyncTimer = new QTimer(this);
@@ -552,34 +556,42 @@ void MainWindow::on_blockquoteAction_triggered(){
 
 void MainWindow::on_strongButton_clicked(){
     on_strongAction_triggered();
+    ui->mainText->setFocus();
 }
 
 void MainWindow::on_ItalicButton_clicked(){
     on_italicAction_triggered();
+    ui->mainText->setFocus();
 }
 
 void MainWindow::on_imageButton_clicked(){
     on_imageAction_triggered();
+    ui->mainText->setFocus();
 }
 
 void MainWindow::on_linkButton_clicked(){
     on_linkAction_triggered();
+    ui->mainText->setFocus();
 }
 
 void MainWindow::on_codeButton_clicked(){
     on_codeAction_triggered();
+    ui->mainText->setFocus();
 }
 
 void MainWindow::on_mistakenButton_clicked(){
     on_mistakenAction_triggered();
+    ui->mainText->setFocus();
 }
 
 void MainWindow::on_horizonButton_clicked(){
     on_horizonAction_triggered();
+    ui->mainText->setFocus();
 }
 
 void MainWindow::on_blockQuoteButton_clicked(){
     on_blockquoteAction_triggered();
+    ui->mainText->setFocus();
 }
 
 void MainWindow::on_convertToPDFAction_triggered(){
@@ -636,6 +648,7 @@ void MainWindow::on_painterAction_triggered(){
 
 void MainWindow::on_painterButton_clicked(){
     on_painterAction_triggered();
+    ui->mainText->setFocus();
 }
 
 void MainWindow::on_screenshotAction_triggered(){
@@ -668,4 +681,5 @@ void MainWindow::on_screenshotAction_triggered(){
 
 void MainWindow::on_screenshotButton_clicked(){
     on_screenshotAction_triggered();
+    ui->mainText->setFocus();
 }

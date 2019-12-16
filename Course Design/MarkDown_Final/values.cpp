@@ -5,7 +5,7 @@
 #include "parser.h"
 bool Values::isInlineCSS = false;
 bool Values::isOutCSS = false;
-string Values::cssAddress = "/home/rinko/NJU_Study/HighLevelProgramme/MarkDown_QT/";
+string Values::cssAddress = "/home/rinko/NJU_Study/GitHub/High_Level_Programme/Course Design/MarkDown_Final/";
 string Values::htmlStart = "<!doctype html>\n"
                            "<html>\n"
                            "<head>\n"

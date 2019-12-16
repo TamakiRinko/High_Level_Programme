@@ -44,8 +44,16 @@ void TextEdit::keyPressEvent(QKeyEvent* e){
 
     }else if(e->key() == Qt::Key_Return){                                                   //Return
         int lineNum = textCursor().blockNumber();
-        QString contents = document()->findBlockByNumber(lineNum).text();
+        QString contents = document()->findBlockByNumber(lineNum).text();     
         int level = lineLevel(contents);
+
+        if(level == 0 && (contents.size() > 1 && contents.mid(0, 2) == "> ")){                                       //blockquote
+            QTextEdit::keyPressEvent(e);
+            QTextCursor qTextCursor = textCursor();
+            qTextCursor.insertText(">\n> ");
+            return;
+        }
+
         if(level > 0){
             int preLevel = 0;
             if(lineNum > 0){
