@@ -218,6 +218,55 @@ int MainWindow::strongOritalic(QString selectedContents){
     }
     return 0;
 }
+/**
+ * 新的Head与之前不同时生成Head, 新的Head与之前相同时去除Head
+ * @brief MainWindow::generateNewHead
+ * @param contents
+ * @param level                         //列表层数
+ * @param newHead                       //新的Head数
+ */
+void MainWindow::generateNewHead(QString& contents, int level, int newHead){
+    int offset = 0;
+    bool flag = false;                                         //之前是否有Head
+    QString prefix = "";
+    if(level == 0){                                         //不是列表，不做事
+
+    }else{
+        prefix = contents.mid(0, (level - 1) * 4);
+        contents = contents.mid((level - 1) * 4);           //去除行首空格
+
+        if(contents.split('.')[0].toInt()){
+            offset = contents.split('.')[0].size() + 2;
+        }else{
+            offset = 2;
+        }
+    }
+    int i = 0;
+    if(contents[offset] == '#'){                            //行首有Head
+        flag = true;
+        for(; i < 6; ++i){
+            if(contents[i + offset] == ' '){
+                break;
+            }
+        }
+        if(contents[i + offset] == ' '){                    //少于6个#
+            i++;
+        }else{                                              //多余6个#，不算Head
+            i = 0;
+        }
+    }
+
+    if(newHead == i - 1){                                   //Head数相同，去除Head
+        contents = prefix + contents.mid(0, offset) + contents.mid(i + offset);
+    }else{                                                  //Head数不同，修改Head
+        QString headfix = "";
+        for(int j = 0; j < newHead; ++j){
+            headfix += "#";
+        }
+        headfix += " ";
+        contents = prefix + contents.mid(0, offset) + headfix + contents.mid(i + offset);
+    }
+}
 
 void MainWindow::painterCloseEvent(){
     painterWindow = nullptr;
@@ -319,12 +368,6 @@ void MainWindow::on_strongAction_triggered(){
         }
 
     }
-//    else{                                                  //光标未选中
-//        qTextCursor.movePosition(QTextCursor::StartOfLine);
-//        qTextCursor.insertText("**");
-//        qTextCursor.movePosition(QTextCursor::EndOfLine);
-//        qTextCursor.insertText("**");
-//    }
 }
 
 void MainWindow::on_italicAction_triggered(){
@@ -347,84 +390,90 @@ void MainWindow::on_italicAction_triggered(){
             selectPart(&qTextCursor, start, end + 2);
         }
     }
-//    else{
-//        qTextCursor.movePosition(QTextCursor::StartOfLine);
-//        qTextCursor.insertText("*");
-//        qTextCursor.movePosition(QTextCursor::EndOfLine);
-//        qTextCursor.insertText("*");
-//    }
 }
 
 void MainWindow::on_h1Action_triggered(){
     QTextCursor qTextCursor = ui->mainText->textCursor();
+    int lineNum = qTextCursor.blockNumber();                                                //行号
+    QString contents = ui->mainText->document()->findBlockByNumber(lineNum).text();         //内容
+    int level = ui->mainText->getLineLevel(lineNum);                                        //Level
 
-    QStringList textList = ui->mainText->toPlainText().split("\n");
-//    ui->mainText->document()->
-
-
+    generateNewHead(contents, level, 1);
 
     qTextCursor.movePosition(QTextCursor::StartOfBlock);
+    qTextCursor.insertText(contents);
     qTextCursor.movePosition(QTextCursor::EndOfBlock, QTextCursor::KeepAnchor);
-    QString str = qTextCursor.selectedText();
-    if(str.toStdString()[0] != '#'){
-        qTextCursor.movePosition(QTextCursor::StartOfBlock);
-        qTextCursor.insertText("# ");
-    }
+    qTextCursor.removeSelectedText();
 }
 
 void MainWindow::on_h2Action_triggered(){
     QTextCursor qTextCursor = ui->mainText->textCursor();
+    int lineNum = qTextCursor.blockNumber();                                                //行号
+    QString contents = ui->mainText->document()->findBlockByNumber(lineNum).text();         //内容
+    int level = ui->mainText->getLineLevel(lineNum);                                        //Level
+
+    generateNewHead(contents, level, 2);
+
     qTextCursor.movePosition(QTextCursor::StartOfBlock);
+    qTextCursor.insertText(contents);
     qTextCursor.movePosition(QTextCursor::EndOfBlock, QTextCursor::KeepAnchor);
-    QString str = qTextCursor.selectedText();
-    if(str.toStdString()[0] != '#'){
-        qTextCursor.movePosition(QTextCursor::StartOfBlock);
-        qTextCursor.insertText("## ");
-    }
+    qTextCursor.removeSelectedText();
 }
 
 void MainWindow::on_h3Action_triggered(){
     QTextCursor qTextCursor = ui->mainText->textCursor();
+    int lineNum = qTextCursor.blockNumber();                                                //行号
+    QString contents = ui->mainText->document()->findBlockByNumber(lineNum).text();         //内容
+    int level = ui->mainText->getLineLevel(lineNum);                                        //Level
+
+    generateNewHead(contents, level, 3);
+
     qTextCursor.movePosition(QTextCursor::StartOfBlock);
+    qTextCursor.insertText(contents);
     qTextCursor.movePosition(QTextCursor::EndOfBlock, QTextCursor::KeepAnchor);
-    QString str = qTextCursor.selectedText();
-    if(str.toStdString()[0] != '#'){
-        qTextCursor.movePosition(QTextCursor::StartOfBlock);
-        qTextCursor.insertText("### ");
-    }
+    qTextCursor.removeSelectedText();
 }
 
 void MainWindow::on_h4Action_triggered(){
     QTextCursor qTextCursor = ui->mainText->textCursor();
+    int lineNum = qTextCursor.blockNumber();                                                //行号
+    QString contents = ui->mainText->document()->findBlockByNumber(lineNum).text();         //内容
+    int level = ui->mainText->getLineLevel(lineNum);                                        //Level
+
+    generateNewHead(contents, level, 4);
+
     qTextCursor.movePosition(QTextCursor::StartOfBlock);
+    qTextCursor.insertText(contents);
     qTextCursor.movePosition(QTextCursor::EndOfBlock, QTextCursor::KeepAnchor);
-    QString str = qTextCursor.selectedText();
-    if(str.toStdString()[0] != '#'){
-        qTextCursor.movePosition(QTextCursor::StartOfBlock);
-        qTextCursor.insertText("#### ");
-    }
+    qTextCursor.removeSelectedText();
 }
 
 void MainWindow::on_h5Action_triggered(){
     QTextCursor qTextCursor = ui->mainText->textCursor();
+    int lineNum = qTextCursor.blockNumber();                                                //行号
+    QString contents = ui->mainText->document()->findBlockByNumber(lineNum).text();         //内容
+    int level = ui->mainText->getLineLevel(lineNum);                                        //Level
+
+    generateNewHead(contents, level, 5);
+
     qTextCursor.movePosition(QTextCursor::StartOfBlock);
+    qTextCursor.insertText(contents);
     qTextCursor.movePosition(QTextCursor::EndOfBlock, QTextCursor::KeepAnchor);
-    QString str = qTextCursor.selectedText();
-    if(str.toStdString()[0] != '#'){
-        qTextCursor.movePosition(QTextCursor::StartOfBlock);
-        qTextCursor.insertText("##### ");
-    }
+    qTextCursor.removeSelectedText();
 }
 
 void MainWindow::on_h6Action_triggered(){
     QTextCursor qTextCursor = ui->mainText->textCursor();
+    int lineNum = qTextCursor.blockNumber();                                                //行号
+    QString contents = ui->mainText->document()->findBlockByNumber(lineNum).text();         //内容
+    int level = ui->mainText->getLineLevel(lineNum);                                        //Level
+
+    generateNewHead(contents, level, 6);
+
     qTextCursor.movePosition(QTextCursor::StartOfBlock);
+    qTextCursor.insertText(contents);
     qTextCursor.movePosition(QTextCursor::EndOfBlock, QTextCursor::KeepAnchor);
-    QString str = qTextCursor.selectedText();
-    if(str.toStdString()[0] != '#'){
-        qTextCursor.movePosition(QTextCursor::StartOfBlock);
-        qTextCursor.insertText("###### ");
-    }
+    qTextCursor.removeSelectedText();
 }
 
 void MainWindow::on_imageAction_triggered(){
@@ -487,18 +536,12 @@ void MainWindow::on_mistakenAction_triggered(){
             selectPart(&qTextCursor, start, end + 4);
         }
     }
-//    else{                                                  //光标未选中
-//        qTextCursor.movePosition(QTextCursor::StartOfLine);
-//        qTextCursor.insertText("~~");
-//        qTextCursor.movePosition(QTextCursor::EndOfLine);
-//        qTextCursor.insertText("~~");
-//    }
 }
 
 void MainWindow::on_horizonAction_triggered(){
     QTextCursor qTextCursor = ui->mainText->textCursor();
-    qTextCursor.movePosition(QTextCursor::StartOfBlock);
-    qTextCursor.insertText("---\n");
+    qTextCursor.movePosition(QTextCursor::EndOfBlock);
+    qTextCursor.insertText("\n---\n");
 }
 
 void MainWindow::on_blockquoteAction_triggered(){

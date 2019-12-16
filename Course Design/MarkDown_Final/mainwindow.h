@@ -74,6 +74,7 @@ private:
     void selectPart(QTextCursor* qTextCursor,  int start, int end);
     void deleteContents(QTextCursor* qTextCursor, int pos, int num);
     int strongOritalic(QString selectedContents);
+    void generateNewHead(QString& contents, int oldLevel, int newLevel);
 
 private slots:
     void onHtmlSyncTimerOut();

@@ -1,7 +1,7 @@
 #include "textedit.h"
 
 TextEdit::TextEdit(QWidget* parent): QTextEdit(parent){
-    levelList.push_back(0);                             //初始默认为0层
+//    levelList.push_back(0);                             //初始默认为0层
 //    setTabChangesFocus(false);
 //    QFontMetrics metrics(font());
 //    setTabStopWidth(8 * metrics.width(' '));            //8????
@@ -22,24 +22,26 @@ void TextEdit::keyPressEvent(QKeyEvent* e){
         int lineNum = textCursor().blockNumber();
         QString contents = document()->findBlockByNumber(lineNum).text();
         int level = lineLevel(contents);
-        if(level == 0){
+
+        if(lineNum == 0){
             textCursor().insertText("    ");
         }else{
-            if(lineNum == 0){
+            QString preContents = document()->findBlockByNumber(lineNum - 1).text();
+            int preLevel = lineLevel(preContents);
+            if(preLevel == 0){
                 textCursor().insertText("    ");
-            }else{
-                QString preContents = document()->findBlockByNumber(lineNum - 1).text();
-                int preLevel = lineLevel(preContents);
-                if(preLevel == 0){
-                    textCursor().insertText("    ");
-                }else if(level <= preLevel){                                                //Level增加一级
-                    level += 1;
-                    generateLevel(level, false);
+            }else if(level <= preLevel){                                                //Level增加一级
+                level += 1;
+                if(level == 1){
+                    generateLevel(level, true);
                 }else{
-                    textCursor().insertText("    ");
+                    generateLevel(level, false);
                 }
+            }else{
+                textCursor().insertText("    ");
             }
         }
+
     }else if(e->key() == Qt::Key_Return){                                                   //Return
         int lineNum = textCursor().blockNumber();
         QString contents = document()->findBlockByNumber(lineNum).text();
@@ -50,8 +52,7 @@ void TextEdit::keyPressEvent(QKeyEvent* e){
                 QString preContents = document()->findBlockByNumber(lineNum - 1).text();
                 preLevel = lineLevel(preContents);
             }
-
-            if(preLevel < level - 1){
+            if(preLevel < level - 1){                                                       //统一前一行和该行，该行最多比前一行大1
                 level = preLevel + 1;
                 generateLevel(level, false);
             }
@@ -71,6 +72,20 @@ int TextEdit::lineLevel(QString contents){
         i++;
     }
     if(contents[i] == '*' && i < contents.size() - 1 && contents[i + 1] == ' '){            //无序列表
+        return num / 4 + 1;
+    }else{
+        return 0;
+    }
+}
+
+int TextEdit::lineLevelAll(QString contents){
+    int num = 0;
+    int i = 0;
+    while(contents[i] == ' '){
+        num++;
+        i++;
+    }
+    if((contents[i] == '*' || contents[i] == '-' || contents[i] == '+')&& i < contents.size() - 1 && contents[i + 1] == ' '){            //无序列表
         return num / 4 + 1;
     }else if(contents.split('.')[0].toInt()){                                               //有序列表
         return num / 4 + 1;
@@ -97,11 +112,11 @@ void TextEdit::generateLevel(int level, bool flag){
                 break;
             }
         }
+        if(flag){
+            contents = "* " + contents;
+        }
         for(int i = 0; i < level - 1; ++i){
             contents = "    " + contents;
-        }
-        if(flag){
-            contents = contents + "* ";
         }
     }
     QTextCursor qTextCursor = textCursor();
@@ -109,4 +124,11 @@ void TextEdit::generateLevel(int level, bool flag){
     qTextCursor.insertText(contents);
     qTextCursor.movePosition(QTextCursor::EndOfBlock, QTextCursor::KeepAnchor);             //删除原来的内容
     qTextCursor.removeSelectedText();
+}
+
+int TextEdit::getLineLevel(int i){
+    if(i >= document()->lineCount()){
+        return -1;
+    }
+    return lineLevelAll(document()->findBlockByNumber(i).text());
 }
