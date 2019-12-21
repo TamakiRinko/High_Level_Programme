@@ -17,6 +17,7 @@ string Values::htmlEnd = "</body>\n"
 string Values::CSSStart = "<!DOCTYPE html>\n"
                           "<html>\n"
                           "<head>\n"
+                          "<meta charset='UTF-8'><meta name='viewport' content='width=device-width initial-scale=1'>\n"
                           "<link rel=\"stylesheet\" type=\"text/css\" href=\"" + cssAddress + "markdownCSS.css\">\n"
                           "</head>\n"
                           "<body>";

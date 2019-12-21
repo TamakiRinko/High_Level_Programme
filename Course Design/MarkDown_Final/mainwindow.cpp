@@ -619,6 +619,8 @@ void MainWindow::on_convertToPDFAction_triggered(){
     QProcess* process = new QProcess(this);
     process->start("wkhtmltopdf", QStringList() << htmlFileName << pdfThisFileName);
     process->waitForFinished();
+    QMessageBox box2(QMessageBox::Warning, "ToPDF", "导出成功！");
+    box2.exec();
 }
 
 void MainWindow::on_painterAction_triggered(){
