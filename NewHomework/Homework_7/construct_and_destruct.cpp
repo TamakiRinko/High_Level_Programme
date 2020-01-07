@@ -55,7 +55,7 @@ public:
         n = num;
         num++;
     }
-    Derived(const Derived& D){
+    Derived(const Derived& D): m1(D.m1), m2(D.m2){
         cout << "derived copy construct" << endl;
         n = num;
         num++;
